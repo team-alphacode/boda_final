@@ -1,0 +1,1454 @@
+/* ==============================================================
+   FLUJO NATURAL DE LANDING PAGE (CON FONDO TEMÁTICO)
+   ============================================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    background-color: #e9e5db; 
+    background-size: cover; 
+    background-position: center;
+    background-attachment: fixed; 
+    min-height: 100dvh;
+    overflow-x: hidden; 
+    overflow-y: auto; 
+}
+
+/* 1. EL CONTENEDOR PRINCIPAL: Debe ser relativo para que deje hacer scroll hasta abajo */
+.contenedor-pantalla {
+    position: relative; 
+    margin: 0 auto;
+    width: 100%;
+    max-width: 500px;
+    min-height: 100dvh;
+    background-color: #fcf9f2;
+    overflow: hidden; 
+    /* Le damos un pequeño margen abajo para que no pegue con el borde de la pantalla */
+    padding-bottom: 30px; 
+}
+/* PANTALLAS INICIALES CENTRADAS */
+#pantalla-carga, #pantalla-sobre, #pantalla-video {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#pantalla-landing {
+    width: 100%;
+    height: auto; 
+    display: flex;
+    flex-direction: column; 
+    align-items: center;
+}
+
+/* --- SECCIONES (DIAPOSITIVAS) --- */
+.contenedor-pantalla {
+    position: relative; /* ¡CLAVE! Dejamos de usar absolute */
+    margin: 0 auto;     /* ¡CLAVE! Esto lo centra perfectamente en cualquier pantalla */
+    
+    width: 100%;
+    max-width: 500px; 
+    min-height: 100dvh; 
+    background-color: #fcf9f2; 
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.3);
+    
+    /* Agregamos un margen interno abajo para que la última imagen respire y no quede pegada al borde del teléfono */
+    padding-bottom: 40px; 
+} 
+
+/* Flujo natural: Pone una imagen exactamente debajo de la otra sin dejar huecos */
+.diapositiva {
+    width: 100%;
+    display: block; 
+    position: relative;
+}   
+
+/* El lienzo mantiene las medidas idénticas de Canva (940x1680) */
+.lienzo-canva {
+    position: relative;
+    width: 100%;
+    height: auto; 
+    display: flex;
+}
+
+/* Las imágenes cubren su lienzo pixel por pixel, sin estirarse */
+.capa-diapositiva {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: contain; 
+    pointer-events: none;
+}
+
+/* Para tu video en el index: Que vuelva a su estado original sin distorsionarse */
+.video-full {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: cover; /* Evita que el video se vea "grandote" y respeta su proporción */
+}
+/* 
+   ¡EL TRUCO MAESTRO! 
+   La primera imagen (el fondo) es relativa. Mantiene su proporción original, 
+   no se recorta y empuja la altura del contenedor hacia abajo de forma natural.
+*/
+.capa-diapositiva:first-of-type {
+    position: relative;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    display: block;
+}
+/* 
+   Las demás imágenes (textos, adornos) son absolutas. 
+   Como todas vienen de Canva con el mismo tamaño (ej. 945x1680), 
+   caerán exactamente encima del fondo, pixel por pixel.
+*/
+.capa-diapositiva:not(:first-of-type) {
+    position: absolute;
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+    pointer-events: none;
+}
+
+.capa-interactiva {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: auto;
+}
+
+/* --- SHAPE DIVIDER (DIVISOR DE FORMA SVG) --- */
+/* Lo añadimos aquí para que haga la magia entre las secciones */
+.custom-shape-divider-bottom-1791279457 {
+    position: absolute;
+    bottom: -1px; /* -1px evita cualquier línea fantasma */
+    left: 0;
+    width: 100%;
+    overflow: hidden;
+    line-height: 0;
+    transform: rotate(180deg);
+    z-index: 10;
+}
+
+.custom-shape-divider-bottom-1791279457 svg {
+    position: relative;
+    display: block;
+    width: calc(106% + 1.3px);
+    height: 58px;
+}
+
+.custom-shape-divider-bottom-1791279457 .shape-fill {
+    fill: #E5D3BF; /* Cámbialo al color que necesites */
+}
+
+/* Clases de utilidad */
+.oculto { display: none !important; }
+.desvanecer-suave { opacity: 0; transition: opacity 0.8s ease; pointer-events: none; }
+.aparecer-suave { animation: fadeIn 1.5s ease-in forwards; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* (AQUÍ ABAJO MANTENEMOS TUS ESTILOS EXACTAMENTE IGUAL PARA EL SPINNER, VIDEO, MODAL Y MAPS) */
+/* --- PANTALLA DE CARGA --- */
+.spinner-dorado { width: 45px; height: 45px; margin: 0 auto; border: 3px solid rgba(179, 135, 40, 0.2); border-top: 3px solid #b38728; border-radius: 50%; animation: girarSpinner 1s linear infinite; }
+@keyframes girarSpinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.texto-animado { font-family: 'Loving Romance', serif; font-style: italic; font-size: 1.5rem; color: #3b5973; margin-top: 25px; text-align: center; transition: opacity 0.5s ease; }
+
+/* --- SELLO Y SOBRE --- */
+#sello-interactivo { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 45%; cursor: pointer; pointer-events: auto; box-shadow: 0 10px 20px rgba(0,0,0,0.5); border-radius: 50%; transition: transform 0.3s ease; }
+#sello-interactivo:hover { transform: translate(-50%, -50%) scale(1.05); }
+
+/* --- VIDEO --- */
+.video-full { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+
+/* --- INDICADOR SCROLL --- */
+.indicador-scroll { position: absolute; bottom: 3%; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; z-index: 20; }
+.chevron { width: 20px; height: 20px; border-right: 2px solid #bf953f; border-bottom: 2px solid #bf953f; transform: rotate(45deg); margin-top: -8px; animation: latidoFlecha 2s infinite ease-in-out; }
+.chevron:nth-child(2) { animation-delay: 0.2s; }
+@keyframes latidoFlecha { 0%, 100% { transform: translateY(0) rotate(45deg); opacity: 0.3; } 50% { transform: translateY(10px) rotate(45deg); opacity: 1; } }
+
+/* --- SECCIÓN MAPA --- */
+#enlace-google-maps { position: absolute; bottom: 6%; left: 50%; transform: translateX(-50%); width: 70%; height: 7%; border-radius: 30px; pointer-events: auto; z-index: 20; }
+
+/* --- SECCIÓN FORMULARIO --- */
+/* ALERTA DE MAGIA: Al arreglar el contenedor para que sea escalable proporcionalmente,
+   tus porcentajes del formulario AHORA SÍ funcionarán a la perfección en CUALQUIER celular. */
+.input-transparente { position: absolute; left: 50%; transform: translateX(-50%); width: 76%; height: 40px; background: transparent; border: none; outline: none; font-family: 'Times New Roman', serif; font-size: 1.1rem; color: #3b5973; padding: 0 15px; z-index: 20; }
+#campo-nombre { top: 57%; } /* Lo subimos un poco */
+#campo-correo { top: 71%; } /* Lo bajamos un poco */
+
+.grupo-radios { position: absolute; top: 80%; left: 50%; transform: translateX(-50%); width: 70%; display: flex; flex-direction: column; gap: 2.5vh; z-index: 20; }
+.label-radio { position: relative; cursor: pointer; height: 30px; display: block; }
+.label-radio input { display: none; }
+.circulo-personalizado { position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 22px; height: 22px; border-radius: 50%; background: transparent; transition: background 0.3s; }
+.label-radio input:checked ~ .circulo-personalizado { background-color: #3b5973; }
+
+/* --- CONTADOR --- */
+#seccion-contador .contenedor-numeros {
+    top: 58.7%;
+    left: 6.5%;
+    width: 87%;
+    height: auto;
+
+    transform: translateY(-50%);
+
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0;
+}
+
+#seccion-contador .numero-contador {
+    width: 100%;
+    text-align: center;
+    line-height: 1;
+
+    font-size: clamp(18px, 7vw, 32px);
+
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+/* --- MODAL --- */
+.modal-oculto { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; }
+.modal-activo { display: flex !important; }
+.contenedor-modal-grafico { position: relative; width: 90%; max-width: 400px; height: 75vh; background: transparent; border-radius: 10px; overflow: hidden; }
+.zona-scroll-inputs { position: absolute; top: 42%; left: 50%; transform: translateX(-50%); width: 80%; height: 32%; overflow-y: auto; pointer-events: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 5px; z-index: 20; }
+.zona-scroll-inputs::-webkit-scrollbar { width: 5px; }
+.zona-scroll-inputs::-webkit-scrollbar-thumb { background: #b38728; border-radius: 10px; }
+.input-textura { width: 100%; height: 50px; flex-shrink: 0; background-image: url('cuadro-modal.webp'); background-size: 100% 100%; background-color: transparent; border: none; outline: none; padding-left: 45px; font-family: 'Times New Roman', serif; font-size: 1.1rem; color: #3b5973; }
+.boton-invisible-guardar { position: absolute; bottom: 15%; left: 50%; transform: translateX(-50%); width: 40%; height: 45px; background: transparent; border: none; cursor: pointer; pointer-events: auto; z-index: 20; }
+.boton-cerrar-esquina { position: absolute; top: 3%; right: 3%; width: 30px; height: 30px; background: rgba(255,255,255,0.7); border: none; border-radius: 50%; color: #3b5973; font-weight: bold; cursor: pointer; pointer-events: auto; z-index: 20; }
+
+/* ==============================================================
+   FIX FINAL: ÚLTIMA SECCIÓN + CONTADOR RESPONSIVE
+   ============================================================== */
+
+/* El contenedor general no necesita relleno inferior artificial. */
+#pantalla-landing {
+    padding-bottom: 0 !important;
+}
+
+/*
+   En teléfonos altos la última lámina puede ser más baja que el viewport.
+   Al darle como mínimo la altura visible del dispositivo, el navegador sí
+   permite desplazarla hasta el borde superior en vez de dejarla "hundida"
+   a mitad de pantalla cuando se llega al final de la página.
+*/
+#pantalla-landing > .diapositiva:last-child {
+    min-height: 100vh;
+    min-height: 100svh;
+    background-color: #fcf9f2;
+}
+
+/*
+   No dependemos del id #seccion-contador. Así el contador funciona incluso
+   si el HTML desplegado todavía no contiene ese id o se está usando otra
+   copia del archivo.
+*/
+.contenedor-numeros {
+    position: absolute !important;
+    top: 58.7% !important;
+    left: 6.5% !important;
+    width: 87% !important;
+    height: auto !important;
+    transform: translateY(-50%) !important;
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 0 !important;
+    padding: 0 !important;
+    z-index: 20;
+}
+
+.numero-contador {
+    width: 100% !important;
+    min-width: 0;
+    text-align: center;
+    line-height: 1;
+    font-family: 'Times New Roman', serif;
+    font-size: clamp(16px, 5.8vw, 29px);
+    font-weight: bold;
+    color: #3b5973;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+/* =========================================================
+   ÚLTIMA SECCIÓN
+   ========================================================= */
+
+#pantalla-landing {
+    padding-bottom: 0 !important;
+}
+
+.diapositiva-final {
+    width: 100%;
+
+    min-height: 100vh;
+    min-height: 100svh;
+
+    display: flex !important;
+    flex-direction: column;
+
+    background-color: #fcf9f2;
+}
+
+
+/*
+   La imagen mantiene exactamente su tamaño proporcional.
+   NO se estira para rellenar la pantalla.
+*/
+.diapositiva-final .lienzo-canva {
+    width: 100%;
+    flex: 0 0 auto;
+}
+
+
+/* =========================================================
+   FOOTER ADAPTABLE AL ESPACIO SOBRANTE
+   ========================================================= */
+
+.footer-boda {
+    /*
+       Aquí está la magia:
+       ocupa solamente el espacio que queda después de la imagen.
+    */
+    flex: 1 1 0;
+
+    width: 100%;
+
+    /* MUY IMPORTANTE */
+    min-height: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    justify-content: center;
+    align-items: center;
+
+    text-align: center;
+
+    /*
+       Ya no usamos 30px fijos.
+       Se adapta al tamaño del dispositivo.
+    */
+    padding:
+        clamp(4px, 1.5vh, 18px)
+        15px
+        max(
+            clamp(4px, 1.5vh, 18px),
+            env(safe-area-inset-bottom)
+        );
+
+    overflow: hidden;
+
+    background-color: #fcf9f2;
+    color: #3b5973;
+}
+
+
+/* Línea */
+.footer-linea {
+    width: clamp(30px, 14vw, 65px);
+    height: 1px;
+
+    flex-shrink: 0;
+
+    background-color: #b38728;
+
+    margin-bottom: clamp(2px, 0.7vh, 8px);
+}
+
+
+/* Corazón */
+.footer-corazon {
+    flex-shrink: 0;
+
+    color: #b38728;
+
+    font-family: Georgia, serif;
+
+    font-size: clamp(13px, 4vw, 21px);
+
+    line-height: 1;
+
+    margin-bottom: clamp(1px, 0.5vh, 6px);
+}
+
+
+/* Mensaje */
+.footer-mensaje {
+    margin: 0;
+
+    font-family: Georgia, 'Times New Roman', serif;
+
+    font-size: clamp(9px, 2.8vw, 14px);
+
+    line-height: 1.15;
+
+    font-style: italic;
+
+    color: #6a7480;
+}
+
+
+/* Nombres */
+.footer-nombres {
+    margin:
+        clamp(1px, 0.5vh, 5px)
+        0
+        0;
+
+    font-family: Georgia, 'Times New Roman', serif;
+
+    font-size: clamp(11px, 3.6vw, 18px);
+
+    line-height: 1;
+
+    font-style: italic;
+
+    color: #3b5973;
+}
+
+/* ==============================================================
+   RSVP FINAL - AISLADO DEL RESTO DE LA INVITACIÓN
+   ============================================================== */
+
+.sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+#rsvp-section .rsvp-lienzo {
+    position: relative;
+    width: 100%;
+}
+
+#rsvp-section .rsvp-form,
+#rsvp-section .rsvp-form * {
+    box-sizing: border-box;
+}
+
+/* Reseteamos únicamente los inputs de esta sección para que ningún CSS global
+   de formularios pueda moverlos o cambiar su tamaño. */
+#rsvp-section .rsvp-form input {
+    margin: 0;
+    border: 0;
+    outline: 0;
+    box-shadow: none;
+    font: inherit;
+}
+
+#rsvp-section .rsvp-field {
+    position: absolute;
+    z-index: 30;
+    display: block;
+    color: #345f80;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: clamp(11px, 3.3vw, 16px);
+    line-height: 1;
+    padding: 0 clamp(7px, 2vw, 12px);
+    border-radius: 10px;
+    caret-color: #345f80;
+}
+
+/* Coordenadas calculadas sobre el lienzo original de Canva 1080x1920. */
+#rsvp-section .rsvp-name {
+    left: 39.3%;
+    top: 54.55%;
+    width: 36.7%;
+    height: 2.65%;
+    background: rgba(252, 249, 242, 0.72);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#rsvp-section .rsvp-email {
+    left: 14.2%;
+    top: 65.02%;
+    width: 69.7%;
+    height: 4.35%;
+    background: rgba(252, 249, 242, 0.94);
+}
+
+#rsvp-section .rsvp-email::placeholder {
+    color: #9b9a99;
+    opacity: .82;
+    font-style: italic;
+}
+
+#rsvp-section .rsvp-field:disabled,
+#rsvp-section .rsvp-field[readonly] {
+    opacity: 1;
+    -webkit-text-fill-color: #345f80;
+}
+
+#rsvp-section .rsvp-choices {
+    position: absolute;
+    inset: 0;
+    z-index: 35;
+    pointer-events: none;
+}
+
+#rsvp-section .rsvp-choice {
+    position: absolute;
+    left: 22.8%;
+    width: 59%;
+    height: 4.2%;
+    cursor: pointer;
+    pointer-events: auto;
+    border-radius: 12px;
+    -webkit-tap-highlight-color: transparent;
+}
+
+#rsvp-section .rsvp-choice--yes { top: 76.7%; }
+#rsvp-section .rsvp-choice--no  { top: 81.05%; }
+
+#rsvp-section .rsvp-choice input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+#rsvp-section .rsvp-dot {
+    position: absolute;
+    left: 1.75%;
+    top: 50%;
+    width: clamp(7px, 2.15vw, 11px);
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%) scale(.35);
+    border-radius: 50%;
+    background: #2e668f;
+    opacity: 0;
+    transition: transform .18s ease, opacity .18s ease;
+}
+
+#rsvp-section .rsvp-choice input:checked + .rsvp-dot {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+#rsvp-section .rsvp-choice:has(input:focus-visible) {
+    outline: 2px solid rgba(46, 102, 143, .45);
+    outline-offset: 2px;
+}
+
+#rsvp-section .rsvp-choice:has(input:disabled) {
+    cursor: default;
+    pointer-events: none;
+}
+
+#rsvp-section .rsvp-estado {
+    position: absolute;
+    left: 50%;
+    top: 88.8%;
+    transform: translateX(-50%);
+    z-index: 40;
+    width: 68%;
+    padding: 8px 12px;
+    border: 1px solid rgba(179,135,40,.38);
+    border-radius: 999px;
+    background: rgba(252,249,242,.88);
+    color: #345f80;
+    text-align: center;
+    font: italic clamp(10px, 2.8vw, 14px)/1.25 Georgia, serif;
+    box-shadow: 0 7px 25px rgba(34,54,68,.08);
+    backdrop-filter: blur(4px);
+}
+
+#rsvp-section .rsvp-form.is-locked .rsvp-email {
+    pointer-events: none;
+}
+
+/* ==============================================================
+   MODALES RSVP V3 — COMPACTOS, CENTRADOS Y SIN AMONTONAR TEXTO
+   ============================================================== */
+
+body.rsvp-modal-open {
+    overflow: hidden !important;
+}
+
+.rsvp-overlay[hidden] { display: none !important; }
+.rsvp-step[hidden] { display: none !important; }
+
+.rsvp-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    display: grid;
+    place-items: center;
+    padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
+    background: rgba(10, 32, 48, .60);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    animation: rsvpBackdrop .22s ease both;
+}
+
+@keyframes rsvpBackdrop {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/*
+   El arte de Canva del modal es 4:5. Conservamos ESA proporción.
+   El modal ya no fuerza 620–720px de alto: crece por el ancho disponible,
+   así que en móvil queda compacto y no aparece una franja enorme vacía.
+*/
+.rsvp-dialog {
+    position: relative;
+    width: min(92vw, 500px, calc(86dvh * .8));
+    aspect-ratio: 4 / 5;
+    height: auto;
+    max-height: 86dvh;
+    overflow: hidden;
+    border-radius: clamp(20px, 5vw, 28px);
+    color: #153f5d;
+    background: #fdf8ee;
+    box-shadow: 0 30px 90px rgba(8,26,38,.34);
+    animation: rsvpCardIn .28s cubic-bezier(.2,.8,.2,1) both;
+}
+
+@keyframes rsvpCardIn {
+    from { opacity: 0; transform: translateY(18px) scale(.975); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.rsvp-dialog-art {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.rsvp-close {
+    position: absolute;
+    top: 5.2%;
+    right: 5.7%;
+    z-index: 30;
+    width: clamp(32px, 8.5vw, 38px);
+    height: clamp(32px, 8.5vw, 38px);
+    border: 1px solid rgba(179,135,40,.36);
+    border-radius: 50%;
+    background: rgba(253,249,242,.94);
+    color: #345f80;
+    font: clamp(21px, 5vw, 25px)/1 Georgia, serif;
+    cursor: pointer;
+    box-shadow: 0 5px 16px rgba(23,54,75,.09);
+}
+
+.rsvp-step-badge {
+    position: absolute;
+    z-index: 16;
+    top: 8.2%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 5px 11px;
+    border: 1px solid rgba(179,135,40,.28);
+    border-radius: 999px;
+    background: rgba(255,252,246,.82);
+    color: #b08342;
+    font: 600 clamp(8px, 2vw, 10px)/1 Georgia, serif;
+    letter-spacing: .18em;
+    white-space: nowrap;
+}
+
+/* Cada paso ocupa una zona fija del diseño, pero su contenido se distribuye con flex. */
+.rsvp-step {
+    position: absolute;
+    z-index: 10;
+    top: 13.5%;
+    right: 9.5%;
+    bottom: 8.5%;
+    left: 9.5%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.rsvp-step-header {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 390px;
+}
+
+.rsvp-eyebrow {
+    margin: 0 0 clamp(4px, .8vh, 7px);
+    color: #b08342;
+    font: 600 clamp(8px, 2vw, 10px)/1.15 Georgia, serif;
+    letter-spacing: .20em;
+}
+
+.rsvp-step-header h2,
+.rsvp-small-card h2 {
+    margin: 0;
+    color: #153f5d;
+    font: 400 clamp(24px, 6.4vw, 36px)/1.06 Georgia, serif;
+}
+
+.rsvp-dialog-copy {
+    margin: clamp(6px, 1.4vh, 10px) auto 0;
+    max-width: 340px;
+    color: #5a7180;
+    font: italic clamp(10px, 2.55vw, 14px)/1.34 Georgia, serif;
+}
+
+/* PASO 1: cantidad */
+.rsvp-step--count {
+    justify-content: flex-start;
+}
+
+.rsvp-count-panel {
+    width: min(100%, 350px);
+    margin: clamp(18px, 3.4vh, 28px) auto 0;
+    padding: clamp(15px, 3.5vw, 22px) clamp(12px, 3.5vw, 20px);
+    border: 1px solid rgba(179,135,40,.25);
+    border-radius: 18px;
+    background: rgba(255,252,246,.78);
+    box-shadow: 0 12px 32px rgba(45,67,80,.06);
+}
+
+.rsvp-count-main {
+    margin: 0;
+    color: #5d7483;
+    font: italic clamp(11px, 2.8vw, 14px)/1.35 Georgia, serif;
+}
+
+.rsvp-count-question {
+    margin: clamp(10px, 2vh, 15px) 0 8px;
+    color: #234f70;
+    font: 600 clamp(11px, 2.8vw, 14px)/1.25 Georgia, serif;
+}
+
+.rsvp-count-panel small {
+    display: block;
+    margin-top: 9px;
+    color: #7b878d;
+    font: italic clamp(8px, 2.1vw, 10px)/1.3 Georgia, serif;
+}
+
+.rsvp-counter {
+    display: inline-grid;
+    grid-template-columns: 40px 52px 40px;
+    align-items: center;
+    overflow: hidden;
+    border: 1px solid rgba(179,135,40,.45);
+    border-radius: 999px;
+    background: rgba(255,255,255,.80);
+}
+
+.rsvp-counter button {
+    height: 36px;
+    border: 0;
+    background: transparent;
+    color: #345f80;
+    font: 22px/1 Georgia, serif;
+    cursor: pointer;
+}
+.rsvp-counter button:disabled { opacity: .32; cursor: default; }
+.rsvp-counter strong { font: 600 15px/1 Georgia, serif; }
+
+/* Botones principales: compactos y centrados. */
+.rsvp-main-action {
+    flex: 0 0 auto;
+    width: min(220px, 68%);
+    min-height: 44px;
+    margin-top: auto;
+    padding: 10px 18px;
+    border: 1px solid rgba(179,135,40,.50);
+    border-radius: 999px;
+    background: linear-gradient(180deg, #5b91b7, #39779f);
+    color: #fffdf8;
+    font: 600 clamp(10px, 2.55vw, 13px)/1 Georgia, serif;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 0 9px 20px rgba(46,102,143,.18);
+}
+.rsvp-main-action:disabled { opacity: .62; cursor: wait; }
+
+/* PASO 2: nombres */
+.rsvp-step--names {
+    align-items: stretch;
+}
+
+.rsvp-step-header--names {
+    align-self: center;
+}
+
+.rsvp-step-header--names h2 {
+    font-size: clamp(22px, 5.8vw, 32px);
+}
+
+/*
+   Esta es la zona que crece hasta un máximo. Con 1 persona queda bajita;
+   con varias personas aparece scroll sin alargar el modal.
+*/
+.rsvp-list-window {
+    flex: 0 1 auto;
+    width: 100%;
+    max-height: min(30dvh, 205px);
+    margin: clamp(14px, 2.6vh, 20px) 0 10px;
+    padding: 9px 5px 9px 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: rgba(252,248,239,.91);
+    border: 1px solid rgba(179,135,40,.14);
+    border-radius: 17px;
+    scrollbar-width: thin;
+    scrollbar-color: #b38728 transparent;
+    box-shadow: inset 0 3px 18px rgba(43,67,83,.025);
+}
+
+/* Cuando solo es una persona, no desperdiciamos media tarjeta. */
+.rsvp-step--names.rsvp-one-person .rsvp-list-window {
+    max-height: none;
+    padding-bottom: 9px;
+}
+
+.rsvp-list-window::-webkit-scrollbar { width: 5px; }
+.rsvp-list-window::-webkit-scrollbar-track { background: transparent; }
+.rsvp-list-window::-webkit-scrollbar-thumb { background: #b38728; border-radius: 99px; }
+
+.rsvp-name-list {
+    display: grid;
+    gap: clamp(9px, 1.5vh, 12px);
+    padding: 3px 8px 6px;
+}
+
+.rsvp-person-field {
+    display: grid;
+    gap: 5px;
+    text-align: left;
+}
+
+.rsvp-person-field label {
+    margin: 0 0 0 8px;
+    color: #547187;
+    font: 600 clamp(8px, 1.9vw, 10px)/1.15 Georgia, serif;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.rsvp-person-field input {
+    display: block;
+    width: 100%;
+    min-height: clamp(44px, 10vw, 53px);
+    margin: 0 !important;
+    padding: 0 clamp(16px, 4.5vw, 24px) 0 clamp(46px, 11vw, 58px) !important;
+    border: 0 !important;
+    outline: 0;
+    border-radius: 14px;
+    background: url('cuadro-modal.webp') center / 100% 100% no-repeat;
+    color: #345f80;
+    font: clamp(11px, 2.9vw, 14px)/1 Georgia, serif;
+}
+
+.rsvp-person-field input::placeholder { color: #9a9a96; font-style: italic; }
+.rsvp-person-field input:focus { filter: drop-shadow(0 4px 9px rgba(44,91,124,.13)); }
+
+.rsvp-step-actions {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    margin-top: auto;
+}
+
+.rsvp-main-action--save { margin-top: 0; }
+
+.rsvp-back-action {
+    border: 0;
+    background: transparent;
+    color: #657b89;
+    padding: 3px 10px;
+    font: italic clamp(10px, 2.45vw, 12px)/1.15 Georgia, serif;
+    cursor: pointer;
+}
+
+/* ==============================================================
+   CONFIRMACIÓN DE "NO" + MENSAJES BONITOS
+   ============================================================== */
+
+.rsvp-small-card {
+    width: min(91vw, 430px);
+    max-height: 86dvh;
+    overflow-y: auto;
+    padding: clamp(28px, 7vw, 42px);
+    border: 1px solid rgba(179,135,40,.38);
+    border-radius: 28px;
+    text-align: center;
+    color: #506a7b;
+    background: radial-gradient(circle at top left, rgba(196,161,97,.12), transparent 38%), #fcf8ef;
+    box-shadow: 0 30px 90px rgba(8,26,38,.30);
+    animation: rsvpCardIn .28s cubic-bezier(.2,.8,.2,1) both;
+}
+
+.rsvp-small-card > p:not(.rsvp-eyebrow) {
+    margin: 16px 0 0;
+    font: italic clamp(13px, 3.5vw, 16px)/1.55 Georgia, serif;
+}
+
+.food-sticker {
+    width: 78px;
+    height: 78px;
+    margin: 0 auto 18px;
+    display: grid;
+    place-items: center;
+    border-radius: 24px;
+    background: #fff8e9;
+    box-shadow: 0 12px 30px rgba(179,135,40,.16);
+    font-size: 36px;
+    transform: rotate(-4deg);
+    animation: foodWiggle 1.8s ease-in-out infinite;
+}
+
+@keyframes foodWiggle {
+    0%,100% { transform: rotate(-4deg) translateY(0); }
+    50% { transform: rotate(4deg) translateY(-3px); }
+}
+
+.rsvp-small-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 24px;
+}
+
+.rsvp-btn {
+    min-height: 46px;
+    padding: 11px 14px;
+    border-radius: 13px;
+    font: 600 13px/1.2 Georgia, serif;
+    cursor: pointer;
+}
+.rsvp-btn--light { border: 1px solid #d7c3a2; background: #fffdfa; color: #345f80; }
+.rsvp-btn--dark { border: 1px solid #153f5d; background: #153f5d; color: white; }
+
+.rsvp-message-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 16px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    border: 1px solid rgba(179,135,40,.45);
+    color: #b38728;
+    background: rgba(255,255,255,.62);
+    font: 34px/1 Georgia, serif;
+}
+.rsvp-message-card .rsvp-btn { margin-top: 22px; width: 100%; }
+
+@media (max-width: 600px) {
+    .rsvp-overlay { padding-left: 9px; padding-right: 9px; }
+    .rsvp-dialog {
+        width: min(94vw, calc(86dvh * .8));
+        max-height: 86dvh;
+    }
+    .rsvp-step {
+        top: 13.8%;
+        right: 8.5%;
+        bottom: 8.5%;
+        left: 8.5%;
+    }
+    .rsvp-list-window { max-height: min(28dvh, 190px); }
+}
+
+@media (max-width: 360px) {
+    .rsvp-small-actions { grid-template-columns: 1fr; }
+    .rsvp-close { width: 31px; height: 31px; }
+    .rsvp-step { right: 7.5%; left: 7.5%; }
+    .rsvp-dialog-copy { line-height: 1.28; }
+}
+
+@media (max-height: 690px) {
+    .rsvp-dialog {
+        width: min(90vw, calc(92dvh * .8));
+        max-height: 92dvh;
+    }
+    .rsvp-step { top: 13.2%; bottom: 7.8%; }
+    .rsvp-count-panel { margin-top: 14px; padding-top: 12px; padding-bottom: 12px; }
+    .rsvp-list-window { max-height: min(26dvh, 160px); margin-top: 11px; }
+    .rsvp-dialog-copy { margin-top: 5px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .rsvp-overlay,
+    .rsvp-dialog,
+    .rsvp-small-card,
+    .food-sticker,
+    #rsvp-section .rsvp-dot {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+/* =========================================================
+   AJUSTE FINO DEL MODAL RSVP
+   Pegar al FINAL de style_final.css
+   ========================================================= */
+
+.rsvp-dialog {
+    width: min(92vw, 500px, calc(88dvh * .8));
+    aspect-ratio: 4 / 5;
+    max-height: 88dvh;
+}
+
+.rsvp-step-badge {
+    top: 8.8%;
+    padding: 5px 12px;
+    font-size: clamp(8px, 1.9vw, 10px);
+}
+
+.rsvp-step {
+    top: 14.8%;
+    right: 10%;
+    bottom: 7.2%;
+    left: 10%;
+}
+
+.rsvp-step-header {
+    max-width: 320px;
+    margin: 0 auto;
+}
+
+.rsvp-eyebrow {
+    margin-bottom: 6px;
+}
+
+.rsvp-step-header h2,
+.rsvp-small-card h2 {
+    font-size: clamp(22px, 5.8vw, 34px);
+    line-height: 1.05;
+    margin-top: 20px;
+}
+
+.rsvp-step-header--names h2 {
+    font-size: clamp(21px, 5.4vw, 31px);
+}
+
+.rsvp-dialog-copy {
+    max-width: 285px;
+    margin-top: 8px;
+    color: #5f7382;
+    font-size: clamp(12px, 2.6vw, 15px);
+    line-height: 1.42;
+}
+
+/* ===== PASO 1 ===== */
+
+.rsvp-count-panel {
+    width: min(100%, 318px);
+    margin: 14px auto 0;
+    padding: 14px 14px 12px;
+    border-radius: 17px;
+}
+
+.rsvp-count-main {
+    font-size: clamp(12px, 3vw, 15px);
+    line-height: 1.35;
+}
+
+.rsvp-count-question {
+    margin: 9px 0 8px;
+    font-size: clamp(12px, 3vw, 15px);
+    line-height: 1.25;
+}
+
+.rsvp-count-panel small {
+    margin-top: 8px;
+    font-size: clamp(9px, 2.2vw, 11px);
+    line-height: 1.3;
+}
+
+.rsvp-counter {
+    grid-template-columns: 38px 48px 38px;
+}
+
+.rsvp-counter button {
+    height: 34px;
+    font-size: 21px;
+}
+
+.rsvp-counter strong {
+    font-size: 15px;
+}
+
+/* ===== BOTÓN PRINCIPAL ===== */
+/* Esto hace que el botón se vea más “metido” en el botón dibujado del arte */
+.rsvp-main-action {
+    width: min(205px, 61%);
+    min-height: 43px;
+    margin-top: auto;
+    margin-bottom: 0;
+    padding: 10px 16px;
+    border-radius: 999px;
+    font-size: clamp(10px, 2.35vw, 12px);
+    letter-spacing: .07em;
+    box-shadow: 0 7px 16px rgba(46,102,143,.15);
+}
+
+/* ===== PASO 2 ===== */
+
+.rsvp-step--names {
+    align-items: center;
+}
+
+.rsvp-step-header--names {
+    max-width: 315px;
+}
+
+.rsvp-list-window {
+    width: min(100%, 320px);
+    max-height: min(23dvh, 168px);
+    margin: 13px auto 8px;
+    padding: 7px 4px 7px 0;
+    border-radius: 16px;
+}
+
+.rsvp-step--names.rsvp-one-person .rsvp-list-window {
+    width: min(100%, 320px);
+    max-height: none;
+}
+
+.rsvp-name-list {
+    gap: 10px;
+    padding: 3px 7px 6px;
+}
+
+.rsvp-person-field label {
+    margin-left: 8px;
+    font-size: clamp(8px, 1.8vw, 10px);
+    line-height: 1.1;
+}
+
+.rsvp-person-field input {
+    min-height: 45px;
+    padding: 0 16px 0 46px !important;
+    font-size: clamp(11px, 2.6vw, 13px);
+}
+
+.rsvp-step-actions {
+    width: 100%;
+    margin-top: auto;
+    gap: 6px;
+    align-items: center;
+}
+
+.rsvp-back-action {
+    padding: 2px 10px;
+    font-size: clamp(12px, 2.6vw, 15px);
+    line-height: 1.15;
+}
+
+.rsvp-main-action--save {
+    width: min(205px, 61%);
+    min-height: 43px;
+}
+
+/* ===== MÓVIL ===== */
+@media (max-width: 430px) {
+    .rsvp-dialog {
+        width: min(94vw, 390px);
+        max-height: 86dvh;
+    }
+
+    .rsvp-step-badge {
+        top: 8.6%;
+    }
+
+    .rsvp-step {
+        top: 14.9%;
+        right: 10.5%;
+        bottom: 7.4%;
+        left: 10.5%;
+    }
+
+    .rsvp-step-header {
+        max-width: 275px;
+    }
+
+    .rsvp-step-header h2,
+    .rsvp-small-card h2 {
+        font-size: clamp(20px, 7vw, 28px);
+    }
+
+    .rsvp-step-header--names h2 {
+        font-size: clamp(19px, 6.6vw, 27px);
+    }
+
+    .rsvp-dialog-copy {
+        max-width: 250px;
+        margin-top: 7px;
+        font-size: 11px;
+        line-height: 1.36;
+    }
+
+    .rsvp-count-panel {
+        width: min(100%, 292px);
+        margin-top: 12px;
+        padding: 12px 12px 11px;
+    }
+
+    .rsvp-count-question {
+        margin: 8px 0 7px;
+    }
+
+    .rsvp-counter {
+        grid-template-columns: 36px 44px 36px;
+    }
+
+    .rsvp-list-window {
+        width: min(100%, 292px);
+        max-height: min(21dvh, 145px);
+        margin-top: 12px;
+    }
+
+    .rsvp-main-action,
+    .rsvp-main-action--save {
+        width: min(188px, 60%);
+        min-height: 41px;
+        font-size: 11px;
+      margin-bottom: -2px;
+    }
+
+    .rsvp-back-action {
+        font-size: 11px;
+    }
+}
+
+/* =========================================================
+   SECCIONES NUEVAS COMO IMAGEN COMPLETA
+   ========================================================= */
+
+.seccion-imagen-unica {
+    width: 100%;
+    position: relative;
+    display: block;
+    background-color: #fcf9f2;
+}
+
+.imagen-seccion-unica {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+/* Si una sección usa enlace invisible encima del diseño */
+.seccion-mapa .lienzo-canva {
+    position: relative;
+    width: 100%;
+    display: block;
+}
+
+.seccion-mapa .imagen-seccion-unica {
+    position: relative;
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.mapa-boton-superpuesto {
+    position: absolute;
+    left: 11%;
+    bottom: 4.2%;
+    width: 78%;
+    height: 6.8%;
+    border-radius: 999px;
+    z-index: 20;
+    display: block;
+}
+
+/* =========================================================
+   BOTÓN FINAL: VOLVER AL INICIO
+   ========================================================= */
+
+.seccion-final-cierre .lienzo-canva {
+    position: relative;
+    width: 100%;
+    display: block;
+}
+
+.btn-volver-inicio {
+    position: absolute;
+    left: 50%;
+    bottom: 7%;
+    transform: translateX(-50%);
+    z-index: 30;
+
+    min-width: 180px;
+    max-width: 72%;
+    padding: 12px 20px;
+
+    border: 1px solid rgba(179, 135, 40, 0.45);
+    border-radius: 999px;
+
+    background: rgba(21, 63, 93, 0.88);
+    color: #fffdf8;
+
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: clamp(11px, 2.9vw, 14px);
+    font-weight: 600;
+    line-height: 1;
+
+    cursor: pointer;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.14);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+
+    transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-volver-al-inicio:hover,
+.btn-volver-inicio:hover {
+    background: rgba(28, 79, 118, 0.92);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+}
+
+.btn-volver-inicio:active {
+    transform: translateX(-50%) scale(0.98);
+}
+/* OPTIMIZACIÓN MÓVIL - reglas de compatibilidad específicas, al final
+   para no cambiar las coordenadas de las ilustraciones de Canva. */
+.rsvp-overlay { overscroll-behavior: contain; }
+.rsvp-list-window {
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+}
+@media (max-width: 600px) {
+    /* >=16px evita zoom de enfoque de iOS y facilita la escritura. */
+    #rsvp-section .rsvp-email, .rsvp-person-field input { font-size: 16px; }
+    /* Dos áreas adyacentes: mejora el tamaño sin superponer Sí y No. */
+    #rsvp-section .rsvp-choice { height: 4.24%; }
+    .rsvp-close { min-width: 36px; min-height: 36px; }
+}
+.rsvp-retry {
+    position: absolute;
+    z-index: 45;
+    top: 93%; left: 50%; transform: translateX(-50%);
+    padding: 8px 15px;
+    min-height: 40px;
+    border-radius: 999px;
+    border: 1px solid #b38728;
+    color: #153f5d;
+    background: rgba(252,249,242,.97);
+    font: 600 13px/1.25 Georgia,serif;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.rsvp-retry[hidden] { display: none !important; }
+.rsvp-retry:focus-visible, .rsvp-choice:focus-within, .mapa-boton-superpuesto:focus-visible, .btn-volver-inicio:focus-visible {
+    outline: 3px solid #b38728;
+    outline-offset: 2px;
+}
+/* Fallbacks vh en dispositivos antiguos que no soportan unidades dinámicas. */
+@supports not (height: 100dvh) {
+  .rsvp-dialog { width: min(92vw, 500px, calc(86vh * .8)); max-height: 86vh; }
+  .rsvp-overlay { min-height: 100vh; }
+  .rsvp-small-card { max-height: 86vh; }
+  .rsvp-list-window { max-height: min(23vh, 168px); }
+  @media (max-height:690px) {
+    .rsvp-dialog { width: min(90vw, calc(92vh * .8)); max-height: 92vh; }
+    .rsvp-list-window { max-height: min(21vh, 145px); }
+  }
+}
+
+
+/* ======================================================================
+   V2 — Modal: teclado, foco y uso horizontal.
+   Añadido al CSS optimizado v1; no modifica posiciones de arte de Canva.
+   ====================================================================== */
+
+/* Mantener desplazable la superficie incluso con teclado o pantalla baja. */
+.rsvp-overlay {
+    max-height: 100vh;
+    max-height: 100dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.rsvp-list-window {
+    /* Garantiza el deslizamiento táctil de la lista de asistentes. */
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+}
+
+.rsvp-overlay.rsvp-keyboard-visible {
+    place-items: start center;
+    scroll-padding-top: 8px;
+    padding-top: max(10px, env(safe-area-inset-top));
+}
+
+.rsvp-overlay.rsvp-keyboard-visible .rsvp-dialog,
+.rsvp-overlay.rsvp-keyboard-visible .rsvp-small-card {
+    margin-block: 0;
+}
+
+/* La apariencia crema elegante persiste si se cambian los adornos del modal. */
+.rsvp-dialog {
+    background: radial-gradient(ellipse at 10% 0%, rgba(199,166,105,.09), transparent 45%), #fdf8ee;
+}
+
+/* Teléfonos girados: el modal mantiene una altura utilizable y se desplaza
+   en el overlay, en lugar de aplastarse hasta dejar 29px para la lista. */
+@media (orientation: landscape) and (max-height: 540px) {
+    .rsvp-overlay {
+        place-items: start center;
+        padding-block: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-bottom));
+    }
+
+    .rsvp-dialog {
+        width: min(92vw, 350px);
+        height: auto;
+        aspect-ratio: 4 / 5;
+        max-height: none;
+        min-height: 438px;
+        flex: 0 0 auto;
+    }
+
+    .rsvp-step {
+        top: 13.4%;
+        bottom: 7%;
+    }
+
+    .rsvp-step-header h2 { margin-top: 12px; }
+    .rsvp-dialog-copy { margin-top: 6px; }
+    .rsvp-count-panel { margin-top: 12px; }
+    .rsvp-list-window {
+        max-height: min(26vh, 155px);
+        margin-top: 10px;
+    }
+    .rsvp-step--names.rsvp-one-person .rsvp-list-window {
+        max-height: 155px;
+    }
+    .rsvp-small-card {
+        max-height: none;
+        margin-inline: auto;
+    }
+}
+
+/* Un poco de espacio para que el navegador pueda colocar el campo enfocado
+   a la vista cuando aparece el teclado virtual. */
+.rsvp-person-field input,
+#rsvp-section .rsvp-email {
+    scroll-margin-block: 18px;
+}

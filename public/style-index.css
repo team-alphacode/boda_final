@@ -1,0 +1,465 @@
+/* ==============================================================
+   INTRO DE BODA - INDEX.HTML
+   Este archivo es EXCLUSIVO para la carga, el sobre y el video.
+   No comparte reglas con invitacion.html.
+   ============================================================== */
+
+:root {
+    --crema: #f7f2e8;
+    --crema-claro: #fcf9f2;
+    --azul: #3b5973;
+    --dorado: #b38728;
+    --dorado-suave: #d8bd80;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+    background: var(--crema);
+}
+
+body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    font-family: Georgia, "Times New Roman", serif;
+    color: var(--azul);
+    -webkit-tap-highlight-color: transparent;
+}
+
+button,
+a {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* --------------------------------------------------------------
+   TODAS LAS PANTALLAS SON CAPAS, NO BLOQUES UNO DEBAJO DEL OTRO.
+   Esto elimina el scroll y evita que se vea el sobre durante la carga.
+   -------------------------------------------------------------- */
+.intro-pantalla {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+
+    overflow: hidden;
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+
+    transition:
+        opacity 700ms ease,
+        visibility 0s linear 700ms;
+
+    background: var(--crema);
+}
+
+.intro-pantalla.activa {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition-delay: 0s;
+}
+
+#pantalla-carga { z-index: 40; }
+#pantalla-sobre { z-index: 30; }
+#pantalla-video { z-index: 35; }
+
+/* ==============================================================
+   CARGA / MENSAJES
+   ============================================================== */
+#pantalla-carga {
+    display: grid;
+    place-items: center;
+
+    padding:
+        max(24px, env(safe-area-inset-top))
+        max(22px, env(safe-area-inset-right))
+        max(24px, env(safe-area-inset-bottom))
+        max(22px, env(safe-area-inset-left));
+
+    background:
+        radial-gradient(circle at 50% 38%, rgba(216, 189, 128, .12), transparent 24%),
+        radial-gradient(circle at 18% 12%, rgba(59, 89, 115, .045), transparent 28%),
+        radial-gradient(circle at 86% 88%, rgba(179, 135, 40, .06), transparent 30%),
+        var(--crema-claro);
+}
+
+#pantalla-carga::before,
+#pantalla-carga::after {
+    content: "";
+    position: absolute;
+    width: min(42vw, 220px);
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(179, 135, 40, .42), transparent);
+}
+
+#pantalla-carga::before { top: 12%; }
+#pantalla-carga::after { bottom: 12%; }
+
+.carga-contenido {
+    position: relative;
+    z-index: 1;
+    width: min(88vw, 420px);
+    text-align: center;
+}
+
+.loader-dorado {
+    width: 42px;
+    height: 42px;
+    margin: 0 auto 22px;
+    border-radius: 50%;
+    border: 1px solid rgba(179, 135, 40, .18);
+    border-top-color: var(--dorado);
+    border-right-color: rgba(179, 135, 40, .62);
+    animation: girar-loader 1.25s linear infinite;
+    box-shadow: 0 0 28px rgba(179, 135, 40, .08);
+}
+
+@keyframes girar-loader {
+    to { transform: rotate(360deg); }
+}
+
+.carga-monograma {
+    margin-bottom: 14px;
+    color: var(--dorado);
+    font-size: clamp(.72rem, 2.8vw, .9rem);
+    letter-spacing: .32em;
+    text-transform: uppercase;
+}
+
+.texto-carga {
+    min-height: 3.6em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    color: var(--azul);
+    font-size: clamp(1rem, 4vw, 1.3rem);
+    line-height: 1.55;
+    font-style: italic;
+
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+
+    transition:
+        opacity 380ms ease,
+        transform 380ms ease,
+        filter 380ms ease;
+}
+
+.texto-carga.texto-oculto {
+    opacity: 0;
+    transform: translateY(8px);
+    filter: blur(2px);
+}
+
+.detalle-carga {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    margin-top: 18px;
+    color: var(--dorado);
+}
+
+.detalle-carga span {
+    width: clamp(30px, 10vw, 52px);
+    height: 1px;
+    background: rgba(179, 135, 40, .5);
+}
+
+.detalle-carga i {
+    font-style: normal;
+    font-size: 14px;
+}
+
+/* ==============================================================
+   ESCENA RESPONSIVE 9:16
+
+   En móvil la escena se hace lo bastante grande para CUBRIR la
+   pantalla completa. Así no aparecen franjas blancas aunque el
+   teléfono sea más alto o más ancho que el diseño original.
+   ============================================================== */
+.pantalla-media {
+    background: #dfe7e9;
+}
+
+.escena-vertical {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+
+    height: max(100vh, calc(100vw * 1.77778));
+    height: max(100dvh, calc(100vw * 1.77778));
+    aspect-ratio: 9 / 16;
+
+    transform: translate(-50%, -50%);
+    overflow: hidden;
+}
+
+.imagen-sobre,
+.video-invitacion {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+/* Fondo de apoyo: si en escritorio dejamos la escena completa,
+   nunca aparecen laterales blancos duros. */
+.fondo-sobre-desenfocado {
+    position: absolute;
+    inset: -35px;
+    background:
+        linear-gradient(rgba(247, 242, 232, .28), rgba(247, 242, 232, .28)),
+        url("sobre1.webp") center / cover no-repeat;
+    filter: blur(24px) saturate(.72);
+    transform: scale(1.08);
+    opacity: .8;
+}
+
+/* Sello: está DENTRO de la misma escena 9:16.
+   Por eso se conserva alineado aunque la escena se recorte para
+   adaptarse a un teléfono muy alto. */
+.boton-sello {
+    position: absolute;
+    z-index: 5;
+    top: 50%;
+    left: 50%;
+
+    width: 45%;
+    aspect-ratio: 1;
+
+    border: 0;
+    outline: 0;
+    padding: 0;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+
+    transform: translate(-50%, -50%);
+    transform-origin: center;
+
+    filter: drop-shadow(0 12px 17px rgba(35, 48, 59, .24));
+
+    animation: pulso-sello 2.7s ease-in-out infinite;
+}
+
+.boton-sello img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 50%;
+}
+
+@keyframes pulso-sello {
+    0%, 100% {
+        transform: translate(-50%, -50%) scale(1);
+        filter: drop-shadow(0 12px 17px rgba(35, 48, 59, .22));
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.035);
+        filter: drop-shadow(0 15px 23px rgba(179, 135, 40, .28));
+    }
+}
+
+.boton-sello.girar-animacion {
+    pointer-events: none;
+    animation: giro-sello 950ms cubic-bezier(.22, .72, .25, 1) forwards;
+}
+
+@keyframes giro-sello {
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg) scale(1);
+        opacity: 1;
+    }
+    55% {
+        transform: translate(-50%, -50%) rotate(450deg) scale(1.08);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-50%, -50%) rotate(720deg) scale(.9);
+        opacity: .25;
+    }
+}
+
+.ayuda-sello {
+    position: absolute;
+    z-index: 4;
+    left: 50%;
+    bottom: 8%;
+    width: 78%;
+    transform: translateX(-50%);
+
+    text-align: center;
+    color: rgba(59, 89, 115, .78);
+    font-size: clamp(.72rem, 2.8vw, .92rem);
+    font-style: italic;
+    letter-spacing: .02em;
+
+    opacity: 0;
+    animation: aparecer-ayuda 1s ease 900ms forwards;
+}
+
+@keyframes aparecer-ayuda {
+    to { opacity: 1; }
+}
+
+#pantalla-sobre.abriendo .escena-sobre {
+    animation: acercar-sobre 1s ease forwards;
+}
+
+@keyframes acercar-sobre {
+    to { transform: translate(-50%, -50%) scale(1.018); }
+}
+
+/* ==============================================================
+   VIDEO
+   ============================================================== */
+#pantalla-video {
+    background: #111;
+}
+
+.video-invitacion {
+    background: #111;
+}
+
+.buffer-video {
+    position: fixed;
+    z-index: 50;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: rgba(252, 249, 242, .36);
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 200ms ease, visibility 0s linear 200ms;
+    pointer-events: none;
+}
+
+.buffer-video.visible {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0s;
+}
+
+.loader-dorado--pequeno {
+    width: 32px;
+    height: 32px;
+    margin: 0;
+    border-width: 1px;
+}
+
+/* ==============================================================
+   FALLBACK
+   ============================================================== */
+.fallback-video {
+    position: fixed;
+    z-index: 100;
+    inset: 0;
+    display: grid;
+    place-content: center;
+    gap: 18px;
+    padding: 30px;
+    text-align: center;
+    background: var(--crema-claro);
+    color: var(--azul);
+}
+
+.fallback-video[hidden] {
+    display: none;
+}
+
+.fallback-video a {
+    justify-self: center;
+    padding: 12px 20px;
+    border: 1px solid rgba(179, 135, 40, .55);
+    border-radius: 999px;
+    color: var(--azul);
+    text-decoration: none;
+    background: rgba(255, 255, 255, .65);
+}
+
+/* ==============================================================
+   ESCRITORIO / PANTALLAS HORIZONTALES GRANDES
+   Conservamos la composición vertical completa y usamos un fondo
+   suave a los lados. En celulares retrato se mantiene full-bleed.
+   ============================================================== */
+@media (min-width: 900px) and (orientation: landscape) {
+    .escena-vertical {
+        height: 100dvh;
+        max-height: 100dvh;
+        width: auto;
+    }
+
+    .imagen-sobre,
+    .video-invitacion {
+        object-fit: contain;
+    }
+
+    #pantalla-video {
+        background: var(--crema);
+    }
+}
+
+/* En celulares muy pequeños, que la indicación no compita con el sello */
+@media (max-height: 650px) {
+    .ayuda-sello { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+    }
+}
+
+/* OPTIMIZACIÓN MÓVIL · la pantalla del sobre se mantiene sobre el video
+   durante los primeros instantes de la animación; play() ya ocurrió
+   sincronizadamente en el toque del usuario (importante para Safari). */
+#pantalla-sobre.abriendo { z-index: 36; }
+
+.saltar-video {
+    position: fixed;
+    bottom: max(22px, env(safe-area-inset-bottom));
+    right: max(16px, env(safe-area-inset-right));
+    z-index: 55;
+    min-height: 44px;
+    padding: 12px 18px;
+    border: 1px solid rgba(179,135,40,.72);
+    border-radius: 999px;
+    color: #234b69;
+    background: rgba(252,249,242,.95);
+    box-shadow: 0 8px 26px rgba(0,0,0,.16);
+    font: 600 14px/1.25 Georgia, serif;
+    cursor: pointer;
+}
+.saltar-video[hidden] { display: none !important; }
+.saltar-video:focus-visible, .boton-sello:focus-visible {
+    outline: 3px solid #b38728;
+    outline-offset: 3px;
+}
+/* Un iPhone girado también necesita ver la escena completa, no solo
+   una franja central del video vertical. */
+@media (orientation: landscape) {
+    .escena-vertical { height: 100vh; height: 100dvh; width: auto; }
+    .imagen-sobre, .video-invitacion { object-fit: contain; }
+}

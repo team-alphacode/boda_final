@@ -1,0 +1,18 @@
+node_modules/
+.env
+.env.*
+!.env.example
+.firebase/
+firebase-debug.log
+*-debug.log
+*service-account*.json
+credentials*.json
+*.pem
+*.key
+.DS_Store
+Thumbs.db
+
+# No subir respaldos enormes ni datos reales de invitados
+*.zip
+backups/
+exports/

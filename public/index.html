@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="referrer" content="no-referrer">
+    <meta name="theme-color" content="#f6f0e6">
+    <title>Boda de Bertha y Josue</title>
+
+    <!-- Este INDEX usa su propio CSS. No carga estilos de invitacion.html. -->
+    <link rel="stylesheet" href="style-index.css?v=10">
+</head>
+<body>
+    <main id="intro-boda">
+
+        <!-- 1. MENSAJES DE CARGA: mientras aparecen, el video se precarga en segundo plano -->
+        <section id="pantalla-carga" class="intro-pantalla activa" aria-live="polite">
+            <div class="carga-contenido">
+                <div class="loader-dorado" aria-hidden="true"></div>
+
+                <p class="carga-monograma">B &amp; J</p>
+
+                <p id="texto-carga" class="texto-carga">
+                    Preparando nuestra invitación...
+                </p>
+
+                <div class="detalle-carga" aria-hidden="true">
+                    <span></span><i>♡</i><span></span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. SOBRE -->
+        <section id="pantalla-sobre" class="intro-pantalla pantalla-media" aria-hidden="true">
+            <!-- Fondo suave para que en escritorio tampoco existan bordes blancos bruscos -->
+            <div class="fondo-sobre-desenfocado" aria-hidden="true"></div>
+
+            <!-- Escena 9:16. En celulares se amplía hasta cubrir TODO el viewport. -->
+            <div class="escena-vertical escena-sobre">
+                <img
+                    src="sobre1.webp"
+                    alt="Sobre de invitación de Bertha y Josue"
+                    class="imagen-sobre"
+                >
+
+                <button
+                    type="button"
+                    id="sello-interactivo"
+                    class="boton-sello"
+                    aria-label="Abrir la invitación"
+                >
+                    <img src="sello.webp" alt="Presiona aquí para abrir la invitación">
+                </button>
+
+                <p class="ayuda-sello">Toca el sello para abrir nuestra invitación</p>
+            </div>
+        </section>
+
+        <!-- 3. VIDEO DE APERTURA -->
+        <section id="pantalla-video" class="intro-pantalla pantalla-media" aria-hidden="true">
+            <div class="escena-vertical escena-video">
+                <video
+                    id="video-invitacion"
+                    class="video-invitacion"
+                    playsinline
+                    webkit-playsinline
+                    preload="metadata"
+                    poster="video-poster.webp"
+                >
+                    <source src="transicion.mp4?v=10" type="video/mp4">
+                    Tu navegador no soporta la reproducción de video.
+                </video>
+            </div>
+
+            <button id="saltar-video" class="saltar-video" type="button" hidden>Continuar sin video →</button>
+            <div id="buffer-video" class="buffer-video" aria-hidden="true">
+                <div class="loader-dorado loader-dorado--pequeno"></div>
+            </div>
+        </section>
+
+        <!-- Fallback: solo aparece si el navegador no puede reproducir el video -->
+        <div id="fallback-video" class="fallback-video" hidden>
+            <p>No pudimos reproducir la apertura en este dispositivo.</p>
+            <a href="invitacion.html">Abrir invitación</a>
+        </div>
+
+    </main>
+
+    <script src="script-index.js?v=10"></script>
+</body>
+</html>
