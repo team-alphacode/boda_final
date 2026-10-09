@@ -1,4 +1,4 @@
-import('./admin.js?v=cards3').catch((error) => {
+import('./admin.js?v=share14').catch((error) => {
   console.error('No se pudo iniciar el panel de administración:', error);
 
   document.getElementById('session-loading').hidden = true;

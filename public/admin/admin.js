@@ -99,8 +99,22 @@ const url = g => {
   return u.href;
 };
 // WhatsApp comparte texto y un enlace real; nunca se incrusta un enlace funcional en un PNG.
-const whatsappMessage = g => `💌 ¡Hola, ${g.name}!\n\nCon mucha alegría queremos invitarte a nuestra boda. Hemos reservado ${g.maxPeople} ${g.maxPeople===1?'lugar':'lugares'} para tu invitación (incluyéndote).\n\nToca el enlace para abrir tu invitación personalizada y confirmar tu asistencia:\n${url(g)}\n\nCon cariño, Josué y Bertha 💙`;
+// Mensaje sobrio: se genera desde el invitado YA cargado. Cero lecturas nuevas.
+const whatsappMessage = g => {
+  const cupos = Number(g.maxPeople) === 1
+    ? 'Hemos reservado *un lugar especialmente para ti*.'
+    : `Hemos reservado *${g.maxPeople} lugares para ustedes*, incluyéndote.`;
+  return `*Una invitación especial para ${g.name}*\n\n` +
+    `«El amor nunca deja de ser.»\n*1 Corintios 13:8*\n\n` +
+    `Damos gracias a Dios por permitirnos dar este paso. Nos llenaría de alegría compartir contigo el comienzo de nuestra vida matrimonial.\n\n` +
+    `${cupos}\n\n` +
+    `*Abre tu invitación personal y confirma tu asistencia:*\n${url(g)}\n\n` +
+    `Con cariño y gratitud,\n*Josué & Bertha*\n19 de diciembre de 2026 · 5:00 p. m.`;
+};
 const whatsappUrl = g => `https://wa.me/?text=${encodeURIComponent(whatsappMessage(g))}`;
+// No usamos enlaces permanentes si el administrador está en localhost.
+// Para enlaces oficiales puedes definir PUBLIC_INVITATION_BASE_URL arriba.
+const isPreviewChannelUrl = g => /--[^/]+\.web\.app$/i.test(new URL(url(g)).hostname);
 const isLocalInvitationUrl = g => {
   const invitationUrl = new URL(url(g));
   const hostname = invitationUrl.hostname.toLowerCase();
@@ -111,6 +125,115 @@ const empty = (title, text) => `<div class="empty"><div class="empty-icon">❧</
 function heading(title, subtitle, action='') { return `<div class="page-heading"><div><p class="eyebrow">BERTHA & JOSUE / ${e(pages.find(p=>p[0]===page)?.[1] || '')}</p><h1>${title}</h1><p class="muted">${subtitle}</p></div>${action}</div>`; }
 function button(action,text,id='',cls=''){return `<button class="${cls}" data-action="${action}" data-id="${e(id)}">${text}</button>`;}
 function input(name,label,value='',type='text',extra=''){return `<label>${label}<input name="${name}" type="${type}" value="${e(value)}" ${extra}></label>`;}
+// ====== V14 · CONTROL DE INVITACIONES REPETIDAS (sin nuevas lecturas) ======
+// Advertencias preventivas. No son una garantía de unicidad en la base de datos.
+// Solo inspecciona state.guests, incluida la lista de archivados.
+function normalizedGuestTokens(name) {
+  const clean = String(name || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+  const noise = new Set(['de','del','la','las','los','el','y','sr','sra','don','dona','familia']);
+  return clean.split(' ').filter(t => t.length > 1 && !noise.has(t)).sort();
+}
+// Distancia de edición con intercambio de letras adyacentes (Josue/Josué, Ramon/Roman).
+function guestTokenDistance(a,b) {
+  if (a === b) return 0;
+  const dp = Array.from({length:a.length+1}, () => Array(b.length+1).fill(0));
+  for (let i=0;i<=a.length;i++) dp[i][0]=i;
+  for (let j=0;j<=b.length;j++) dp[0][j]=j;
+  for (let i=1;i<=a.length;i++) for (let j=1;j<=b.length;j++) {
+    const cost = a[i-1] === b[j-1] ? 0 : 1;
+    dp[i][j] = Math.min(dp[i-1][j]+1, dp[i][j-1]+1, dp[i-1][j-1]+cost);
+    if (i>1 && j>1 && a[i-1]===b[j-2] && a[i-2]===b[j-1]) {
+      dp[i][j] = Math.min(dp[i][j],dp[i-2][j-2]+1);
+    }
+  }
+  return dp[a.length][b.length];
+}
+function compareGuestNames(first, second) {
+  const a = normalizedGuestTokens(first), b = normalizedGuestTokens(second);
+  if (!a.length || !b.length) return null;
+  if (a.join(' ') === b.join(' ')) return { score:100, reason:'Mismo nombre (ignora tildes y orden)' };
+  const edges = [];
+  for (let i=0;i<a.length;i++) for (let j=0;j<b.length;j++) {
+    const limit = Math.max(a[i].length,b[j].length) >= 5 ? 2 : 1;
+    const d = guestTokenDistance(a[i],b[j]);
+    if (d <= limit && d / Math.max(a[i].length,b[j].length) <= 0.40) {
+      edges.push({i,j,d});
+    }
+  }
+  edges.sort((x,y)=>x.d-y.d);
+  const usedA=new Set(),usedB=new Set();let matched=0,edit=0;
+  for (const edge of edges) {
+    if (usedA.has(edge.i) || usedB.has(edge.j)) continue;
+    usedA.add(edge.i);usedB.add(edge.j);matched++;edit+=edge.d;
+  }
+  // Dos componentes similares son necesarios para evitar avisos por "José" o "Castillo" solos.
+  if (matched >= 2 && matched / Math.min(a.length,b.length) >= 0.66) {
+    return {score:Math.round(88 - edit*4 - (Math.max(a.length,b.length)-matched)*4), reason:'Nombre y apellidos muy parecidos'};
+  }
+  // También cubre una invitación introducida solo con un apellido o un nombre propio.
+  if (a.length === 1 && b.length === 1 && matched === 1) {
+    return {score:80-edit*8,reason:'Nombre muy parecido'};
+  }
+  return null;
+}
+function findSimilarGuests(name, excludedId='') {
+  return state.guests.flatMap(g=>{
+    if(g.id === excludedId)return [];
+    const similarity=compareGuestNames(name,g.name);
+    return similarity ? [{...similarity, guest:g}] : [];
+  }).sort((a,b)=>b.score-a.score).slice(0,4);
+}
+function duplicatesMarkup(name, excludedId) {
+  const matches=findSimilarGuests(name,excludedId);
+  if(!matches.length)return '';
+  return `<div class="duplicate-alert" role="status"><strong>✦ Ya existe ${matches.length===1?'una invitación parecida':'invitaciones parecidas'}</strong><p>Comprueba que no sea la misma persona antes de guardar.</p><div class="duplicate-match-list">`+
+    matches.map(({guest:g,reason})=>`<div class="duplicate-match">
+      <div class="duplicate-match-art" aria-hidden="true"><img src="tarjeta-molde.png" alt=""><span>${e(g.name)}</span></div>
+      <div class="duplicate-match-text"><strong>${e(g.name)}</strong><small>${e(reason)} · ${g.maxPeople} ${g.maxPeople===1?'cupo':'cupos'} · ${g.active?'Activa':'Archivada'} · ${g.configured?'Configurada':'Pendiente'}</small><button type="button" data-duplicate-view="${e(g.id)}">Ver tarjeta existente ↗</button></div>
+    </div>`).join('')+`</div></div>`;
+}
+function paintDuplicateHint(inputElement) {
+  if(!inputElement?.matches('[data-duplicate-name]'))return;
+  const form=inputElement.closest('form');
+  const container=form?.querySelector('.duplicate-hints');
+  if(container)container.innerHTML=duplicatesMarkup(inputElement.value,inputElement.dataset.duplicateExclude || '');
+}
+function duplicateField(excludedId='') {
+  return `<div class="duplicate-hints" aria-live="polite" data-for="${e(excludedId)}"></div>`;
+}
+let duplicateNavigationPending = '';
+function takeDuplicateNavigation() {
+  if(!duplicateNavigationPending)return false;
+  const id=duplicateNavigationPending;
+  duplicateNavigationPending='';
+  goToExistingInvitation(id);
+  return true;
+}
+function goToExistingInvitation(id) {
+  const g=state.guests.find(item=>item.id===id);
+  if(!g)return;
+  selected=id;
+  editingManagedCardId=g.configured?id:'';
+  const destination=g.configured?'card-manager':'cards';
+  if(pageFromHash()===destination)render();
+  else location.hash=destination;
+}
+document.addEventListener('click', event=>{
+  const hit=event.target.closest('[data-duplicate-view]');
+  if(!hit)return;
+  event.preventDefault();
+  const id=hit.dataset.duplicateView;
+  const modal=hit.closest('dialog.app-dialog');
+  if(modal){
+    // El flujo que abrió el diálogo tomará esta navegación al recibir "Cancelar".
+    // Así evitamos reabrir accidentalmente otro diálogo encima de la tarjeta.
+    duplicateNavigationPending=id;
+    modal.querySelector('[data-cancel]')?.click();
+  }else goToExistingInvitation(id);
+});
+// ====== FIN CONTROL DE INVITACIONES REPETIDAS ======
+
 function guestCard(g) {
   const r = state.responses.find(r=>r.id===g.token), group = people().filter(p=>p.guestId===g.id);
   const tables = [...new Set(group.map(p=>state.tables.find(t=>t.id===p.tableId)?.name).filter(Boolean))];
@@ -139,7 +262,7 @@ function cardEditor(g) {
   return `<div class="split card-builder-layout">
     <section class="panel card-editor-panel">
       <form id="card-form">
-        ${input('name','Invitación dirigida a',g.name,'text','required maxlength="120"')}
+        ${input('name','Invitación dirigida a',g.name,'text',`required maxlength="120" data-duplicate-name data-duplicate-exclude="${e(g.id)}"`)}${duplicateField(g.id)}
         ${input('maxPeople','Lugares reservados (incluye al invitado principal)',g.maxPeople,'number','required min="1" max="20"')}
         <label>Mensaje personal<textarea name="message" maxlength="600">${e(g.message||'')}</textarea></label>
         <button class="primary" type="submit">Guardar tarjeta</button>
@@ -184,13 +307,21 @@ function cardManager() {
     return heading('Editar tarjeta existente.', 'Modifica únicamente la tarjeta que elegiste.', button('manager-back','← Volver a tarjetas')) + cardEditor(editing);
   }
   editingManagedCardId = '';
-  return heading('Tarjetas listas para compartir.', 'Aquí aparecen las tarjetas que ya están configuradas.') +
+  return heading('Tarjetas listas para compartir.', 'Cada tarjeta tiene su propio destinatario; la portada y la dedicatoria conservan nuestra identidad.') +
+    `<div class="share-manager-intro"><span class="share-manager-seal" aria-hidden="true">J<span>&</span>B</span><div><span class="eyebrow">CORRESPONDENCIA ESPECIAL</span><h2>Un mensaje preparado con cariño.</h2><p>Elige una tarjeta y revisa cómo llegará el mensaje antes de abrir WhatsApp.</p></div><span class="share-manager-count">${configured.length}<small>tarjetas listas</small></span></div>` +
     (configured.length
       ? `<div class="card-manager-grid">${configured.map(g=>`<article class="managed-card ${!g.active?'is-archived':''}">
           ${cardArtwork(g,true)}
           <div class="managed-card-info">
             <div><span class="eyebrow">${g.active?'LISTA PARA COMPARTIR':'ARCHIVADA'}</span><h3>${e(g.name)}</h3><small>${g.maxPeople} ${g.maxPeople===1?'lugar reservado':'lugares reservados'}</small></div>
-            <div class="actions">${button('manager-edit','Editar',g.id)}${button('copy','Copiar enlace',g.id)}${button('open','Ver invitación ↗',g.id)}${g.active?button('whatsapp','Compartir por WhatsApp',g.id):''}</div>
+            <div class="share-card-actions">
+                ${g.active?button('whatsapp','✦ Preparar envío por WhatsApp',g.id,'share-launch'):''}
+                <div class="share-card-tools">
+                  ${button('manager-edit','Editar',g.id)}
+                  ${button('copy','Copiar enlace',g.id)}
+                  ${button('open','Vista previa ↗',g.id)}
+                </div>
+              </div>
           </div>
         </article>`).join('')}</div>`
       : empty('Todavía no hay tarjetas guardadas', 'Configura una tarjeta en la sección Tarjetas y aparecerá automáticamente aquí.'));
@@ -236,15 +367,35 @@ window.addEventListener('hashchange',async()=>{
   render();
 });
 document.addEventListener('input',event=>{
+  if(event.target.matches('[data-duplicate-name]')) paintDuplicateHint(event.target);
   if(event.target.id==='search'){search=event.target.value;render();}
   if(event.target.closest('#card-form')){const f=$('#card-form');f.dataset.dirty='true';const name=$('.invite-card-name');if(name)name.textContent=f.elements.name.value;}
 });
 document.addEventListener('change',event=>{if(event.target.id==='filter'){filter=event.target.value;render();}if(event.target.id==='card-select'){selected=event.target.value;render();}});
 async function editGuest(g){
-  const data=await dialog(g?'Editar invitación':'Una persona especial',input('name','Nombre de la persona o familia',g?.name||'','text','required maxlength="120"')+input('maxPeople','Máximo de personas, incluyendo al principal',g?.maxPeople||1,'number','required min="1" max="20"'));
-  if(!data)return;
-  const id=await saveGuest(g?.id,{...g,name:data.get('name'),maxPeople:data.get('maxPeople')});toast('Invitado guardado correctamente.');
-  if(!g){const next=await dialog('Invitado registrado correctamente','<p>¿Deseas configurar ahora su tarjeta de invitación?</p>','Configurar tarjeta','Configurar después');if(next){selected=id;location.hash='cards';render();}}
+  // Al regresar desde la alerta se conserva lo escrito; ninguna escritura ocurre sin confirmar.
+  let draft={name:g?.name||'',maxPeople:String(g?.maxPeople||1)};
+  for(;;){
+    const fields=input('name','Nombre de la persona o familia',draft.name,'text',`required maxlength="120" data-duplicate-name data-duplicate-exclude="${e(g?.id||'')}"`)+duplicateField(g?.id||'')+
+      input('maxPeople','Máximo de personas, incluyendo al principal',draft.maxPeople,'number','required min="1" max="20"');
+    const data=await dialog(g?'Editar invitación':'Una persona especial',fields);
+    if(!data){takeDuplicateNavigation();return;}
+    draft={name:String(data.get('name')||'').trim(),maxPeople:String(data.get('maxPeople')||1)};
+    const matches=findSimilarGuests(draft.name,g?.id||'');
+    if(matches.length){
+      const approve=await dialog('¿Esta persona ya tiene invitación?',
+        `<p class="muted">Encontramos coincidencias con el nombre que escribiste. Revisa las tarjetas existentes para evitar duplicados.</p>${duplicatesMarkup(draft.name,g?.id||'')}`,
+        'Guardar de todos modos','Corregir nombre');
+      if(!approve){if(takeDuplicateNavigation())return;continue;}
+    }
+    const id=await saveGuest(g?.id,{...g,name:draft.name,maxPeople:draft.maxPeople});
+    toast('Invitado guardado correctamente.');
+    if(!g){
+      const next=await dialog('Invitado registrado correctamente','<p>¿Deseas configurar ahora su tarjeta de invitación?</p>','Configurar tarjeta','Configurar después');
+      if(next){selected=id;location.hash='cards';render();}
+    }
+    return;
+  }
 }
 async function editRSVP(g){
   const response=state.responses.find(r=>r.id===g.token);
@@ -259,8 +410,74 @@ async function seatModal(p,tableId=''){
 }
 document.addEventListener('submit',async event=>{
   if(event.target.id!=='card-form')return;event.preventDefault();const b=event.target.querySelector('button');b.disabled=true;
-  try{const g=state.guests.find(g=>g.id===selected),f=new FormData(event.target);if(!g)throw Error('No encontramos esta invitación. Vuelve a seleccionar el invitado.');await saveGuest(g.id,{...g,name:f.get('name'),maxPeople:f.get('maxPeople'),message:f.get('message'),configured:true});event.target.dataset.dirty='false';editingManagedCardId='';location.hash='card-manager';render();toast('Tarjeta guardada. Ya está disponible en Gestión de tarjetas.');}catch(err){toast(errorMessage(err),true);}finally{b.disabled=false;}
+  try{const g=state.guests.find(g=>g.id===selected),f=new FormData(event.target);if(!g)throw Error('No encontramos esta invitación. Vuelve a seleccionar el invitado.');const similar=findSimilarGuests(f.get('name'),g.id);if(similar.length){const approved=await dialog('¿Es una invitación repetida?',`<p class="muted">Ya hay nombres parecidos registrados. Revisa antes de continuar.</p>${duplicatesMarkup(f.get('name'),g.id)}`,'Guardar de todos modos','Revisar nombre');if(!approved){takeDuplicateNavigation();return;}}await saveGuest(g.id,{...g,name:f.get('name'),maxPeople:f.get('maxPeople'),message:f.get('message'),configured:true});event.target.dataset.dirty='false';editingManagedCardId='';location.hash='card-manager';render();toast('Tarjeta guardada. Ya está disponible en Gestión de tarjetas.');}catch(err){toast(errorMessage(err),true);}finally{b.disabled=false;}
 });
+
+// ====== COMPARTIR EN WHATSAPP · DIÁLOGO PREVIO ELEGANTE ======
+// Solo presenta enlaces y texto generados a partir de state.guests.
+// Nunca escribe en Firestore, ni marca falsamente una tarjeta como «enviada».
+let shareGuest = null;
+let shareReturnFocus = null;
+const shareDialog = document.getElementById('share-dialog');
+const shareName = document.getElementById('share-person-name');
+const shareSeats = document.getElementById('share-person-seats');
+const shareMessage = document.getElementById('share-message');
+const shareUrl = document.getElementById('share-url');
+const shareWarning = document.getElementById('share-warning');
+const sharePreviewImage = document.getElementById('share-preview-img');
+function openShareDialog(g) {
+  if (!shareDialog || !g?.configured || !g.active) return;
+  shareGuest = g;
+  shareReturnFocus = document.activeElement;
+  shareName.textContent = g.name;
+  shareSeats.textContent = Number(g.maxPeople) === 1 ? '1 lugar reservado' : `${g.maxPeople} lugares reservados · incluye al destinatario`;
+  shareMessage.value = whatsappMessage(g);
+  shareUrl.textContent = url(g);
+  shareUrl.href = url(g);
+  shareWarning.hidden = !isPreviewChannelUrl(g);
+  // La imagen del modal es la misma portada que usará og:image.
+  sharePreviewImage.src = '../og-boda.webp?v=14';
+  const previewDomain = document.getElementById('share-preview-domain');
+  if (previewDomain) previewDomain.textContent = new URL(url(g)).hostname;
+  if (!shareDialog.open) shareDialog.showModal();
+}
+function closeShareDialog() {
+  if (!shareDialog?.open) return;
+  shareDialog.close();
+}
+shareDialog?.addEventListener('close', () => {
+  shareGuest = null;
+  if (shareReturnFocus?.isConnected) shareReturnFocus.focus({preventScroll:true});
+  shareReturnFocus = null;
+});
+// Evitar cierres involuntarios al tocar las tarjetas del contenido.
+shareDialog?.addEventListener('click', ev => {
+  if (ev.target === shareDialog) closeShareDialog();
+});
+async function copyShareText(text, success) {
+  try {
+    await navigator.clipboard.writeText(text);
+    toast(success);
+  } catch (err) {
+    toast('No se pudo copiar automáticamente. Selecciona el texto y cópialo.', true);
+    shareMessage?.focus();
+    shareMessage?.select();
+  }
+}
+document.addEventListener('click', event => {
+  const action = event.target.closest('[data-share-action]')?.dataset.shareAction;
+  if (!action || !shareGuest || !shareDialog?.open) return;
+  if (action === 'close') return closeShareDialog();
+  if (action === 'copy-message') return void copyShareText(whatsappMessage(shareGuest), 'Mensaje copiado.');
+  if (action === 'copy-link') return void copyShareText(url(shareGuest), 'Enlace personal copiado.');
+  if (action === 'open-invite') return void window.open(url(shareGuest), '_blank', 'noopener,noreferrer');
+  if (action === 'open-whatsapp') {
+    // No hay envío automático. wa.me abre la aplicación y permite elegir contacto.
+    const destination = whatsappUrl(shareGuest);
+    window.open(destination, '_blank', 'noopener,noreferrer');
+  }
+});
+
 document.addEventListener('click',async event=>{
   const b=event.target.closest('[data-action]');if(!b)return;const action=b.dataset.action,id=b.dataset.id,g=state.guests.find(g=>g.id===id);b.disabled=true;
   try{
@@ -275,8 +492,9 @@ document.addEventListener('click',async event=>{
       else if(isLocalInvitationUrl(g)){
         toast('La invitación necesita un enlace público HTTPS para compartirse. No puedes enviar la dirección local de tu computadora.',true);
       }else{
-        // Abrimos el compositor (no se envía automáticamente; el administrador elige contacto).
-        window.open(whatsappUrl(g),'_blank','noopener,noreferrer');
+        // No abrimos la interfaz genérica de wa.me de inmediato.
+        // Primero mostramos NUESTRA ventana de revisión; la persona decide enviar.
+        openShareDialog(g);
       }
     }
     if(action==='open')window.open(url(g),'_blank','noopener,noreferrer');

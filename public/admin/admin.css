@@ -173,3 +173,73 @@
   .card-manager-grid{grid-template-columns:1fr}
   .managed-card{max-width:390px;margin-inline:auto}
 }
+
+
+/* ==============================================================
+   V13 · PRESENTACIÓN ELEGANTE WHATSAPP
+   Alcance: gestión de tarjetas + ventana de compartir. No altera
+   estilos globales del administrador, RSVP ni recursos de invitación.
+   ============================================================== */
+.share-manager-intro{display:flex;align-items:center;gap:22px;padding:23px 27px;margin:0 0 24px;background:linear-gradient(105deg,#142d3c,#234657);border:1px solid rgba(172,135,80,.22);border-radius:18px;color:#fff;position:relative;overflow:hidden}
+.share-manager-intro:after{content:"";position:absolute;width:210px;height:210px;border:1px solid rgba(218,187,132,.25);border-radius:50%;right:-50px;top:-90px;pointer-events:none}
+.share-manager-intro .share-manager-seal{width:83px;height:83px;flex:none;border:1px solid #ceaa69;border-radius:50%;display:grid;place-content:center;font:32px Georgia,serif;color:#e1bd83;letter-spacing:-2px;box-shadow:inset 0 0 0 5px #142d3c, inset 0 0 0 6px #bf985a;background:#142d3c}
+.share-manager-intro .share-manager-seal span{font-size:19px;color:#e1bd83;font-style:italic}
+.share-manager-intro h2{font-size:28px;margin:8px 0 7px}.share-manager-intro p{margin:0;color:#d8e1e2;font-size:12px;line-height:1.6}
+.share-manager-intro .share-manager-count{margin-left:auto;font:38px Georgia,serif;color:#e0bf85;white-space:nowrap;text-align:center;position:relative;z-index:1}
+.share-manager-count small{display:block;color:#dfd9ca;font:10px Arial,sans-serif;letter-spacing:1px}
+.managed-card-info .share-card-actions{display:grid;gap:9px;padding-top:15px;border-top:1px solid #ebe5da}
+.share-card-actions .share-launch{background:#244b43;color:#fff;border:1px solid #244b43;font-size:12px;font-weight:600;padding:13px 9px;box-shadow:0 4px 14px rgba(36,75,67,.12)}
+.share-card-actions .share-launch:hover{background:#1d3e38;color:white}
+.share-card-tools{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.share-card-tools button{font-size:10px;min-width:0;padding:8px 5px;line-height:1.35}
+.share-dialog{width:min(1050px,calc(100vw - 28px));max-width:1050px;max-height:min(94dvh,900px);padding:0;border:1px solid #cbb996;border-radius:19px;background:#faf7f0;color:#142d3c;box-shadow:0 34px 100px rgba(0,0,0,.38);overflow:auto}
+.share-dialog::backdrop{background:rgba(8,24,32,.72);backdrop-filter:blur(4px)}
+.share-dialog-shell{padding:0}
+.share-dialog-header{background:#132e3f;color:#f8f2e7;padding:27px 32px 23px;display:flex;justify-content:space-between;gap:15px;border-bottom:3px solid #b6945f}
+.share-dialog-header h2{font:normal 30px Georgia,serif;margin:8px 0}
+.share-dialog-header p{font-size:13px;color:#d5dfde;margin:0}
+.share-dialog-close{background:none;border:1px solid rgba(255,255,255,.4);color:white;border-radius:50%;width:40px;height:40px;font-size:25px;padding:0;display:grid;place-items:center;flex:none}
+.share-dialog-close:hover{background:rgba(255,255,255,.15)}
+.share-dialog-columns{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(290px,.95fr);gap:0}
+.share-dialog-main{padding:27px 30px;border-right:1px solid #e4ddcc;min-width:0}
+.share-recipient{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.share-recipient-icon{display:grid;place-items:center;flex:none;width:52px;height:52px;border-radius:50%;border:1px solid #c6ac7e;background:#efe7d8;color:#997747;font-size:22px}
+.share-recipient h3{font:normal 24px Georgia,serif;margin:6px 0 3px}
+.share-recipient small{display:block;color:#63737a;font-size:12px}
+.share-editor-label{display:block;font-weight:700;font-size:12px;margin:0 0 9px}
+.share-message{display:block;width:100%;height:290px;min-height:230px;padding:17px 18px;resize:vertical;border:1px solid #dbcbaa;border-radius:12px;background:#fffefd;color:#263943;font-size:12px;line-height:1.7;font-family:Arial,sans-serif;overflow:auto}
+.share-toolbar{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
+.share-toolbar button{flex:1 1 auto;font-size:11px;padding:11px 8px;background:white}
+.share-send{display:block;width:100%;margin-top:17px;background:#215c4a;color:#fff;border-color:#215c4a;font-weight:bold;font-size:13px;padding:15px 12px}
+.share-send:hover{background:#174c3c;color:#fff}
+.share-disclaimer{font-size:11px;color:#62757c;text-align:center;margin:11px 0 0;line-height:1.5}
+.share-warning{background:#fff0d8;border-left:3px solid #c7903c;color:#7c5a30;border-radius:6px;padding:10px 13px;font-size:11px;line-height:1.5;margin:12px 0}
+.share-dialog-preview{padding:28px;min-width:0;background:linear-gradient(150deg,#f1ece2,#faf7f0)}
+.share-link-card{border-radius:15px;background:white;box-shadow:0 14px 28px rgba(26,46,54,.1);border:1px solid #d7ccb7;overflow:hidden;margin:16px 0}
+.share-link-card img{display:block;width:100%;height:auto;aspect-ratio:1200/630;object-fit:cover;background:#dcd3c5}
+.share-link-card-text{padding:16px}
+.share-link-card-text strong{display:block;font:19px Georgia,serif;color:#142d3c;line-height:1.25}
+.share-link-card-text p{margin:8px 0;color:#59686a;font-size:12px;line-height:1.6}
+.share-link-card-text span{color:#a48350;font-size:11px}
+.share-visible-url{display:block;font-family:ui-monospace,monospace;color:#235c73;text-decoration:underline;overflow-wrap:anywhere;font-size:11px;line-height:1.55}
+.share-preview-footnote{font-size:11px;color:#657578;margin:14px 0 0;line-height:1.6}
+@media(max-width:800px){.share-dialog-columns{grid-template-columns:1fr}.share-dialog-main{border-right:0;border-bottom:1px solid #e4ddcc}.share-dialog-preview{padding:23px}.share-dialog-header{padding:22px}.share-dialog-header h2{font-size:25px}.share-dialog-main{padding:20px}.share-manager-intro{padding:18px;gap:13px}.share-manager-intro .share-manager-seal{width:58px;height:58px;font-size:22px}.share-manager-intro h2{font-size:22px}}
+@media(max-width:520px){.share-manager-intro{align-items:flex-start}.share-manager-intro .share-manager-seal{display:none}.share-manager-intro .share-manager-count{font-size:24px}.share-manager-count small{font-size:9px}.share-card-tools{grid-template-columns:1fr 1fr}.share-card-tools button:last-child{grid-column:span 2}.share-dialog{max-height:96dvh}.share-dialog-header{padding:20px 16px}.share-dialog-header h2{font-size:23px}.share-dialog-main,.share-dialog-preview{padding:18px}.share-message{height:230px}}
+@media(prefers-reduced-motion:reduce){.managed-card,.share-card-actions button{transition:none!important}}
+
+
+/* V14 · Advertencia preventiva de invitaciones similares (solo editor y alta). */
+.duplicate-hints:empty{display:none}
+.duplicate-alert{margin:12px 0 18px;padding:13px;border:1px solid #d8b982;border-left:4px solid #ba9559;border-radius:12px;background:#fff9ed;color:#193649}
+.duplicate-alert>strong{font-size:13px;display:block;margin-bottom:4px}
+.duplicate-alert>p{font-size:12px;line-height:1.5;color:#68747a;margin:0 0 11px}
+.duplicate-match-list{display:grid;gap:9px}
+.duplicate-match{display:flex;align-items:center;gap:12px;padding:9px;border-radius:10px;background:white;border:1px solid #e9decb;min-width:0}
+.duplicate-match-art{position:relative;flex:0 0 55px;width:55px;aspect-ratio:945/1680;border-radius:5px;overflow:hidden;background:#ede0c8;box-shadow:0 3px 10px #142d3c18}
+.duplicate-match-art img{width:100%;height:100%;object-fit:cover;display:block}
+.duplicate-match-art span{position:absolute;inset:35% 4% auto;text-align:center;font:700 5px/1.2 'Courier New',monospace;text-transform:uppercase;overflow-wrap:anywhere;color:#142d3c}
+.duplicate-match-text{flex:1;min-width:0;display:grid;justify-items:start;gap:4px}
+.duplicate-match-text strong{font:17px Georgia,serif;overflow-wrap:anywhere}
+.duplicate-match-text small{font-size:10px;color:#62737b;line-height:1.4}
+.duplicate-match-text button{padding:8px 10px;font-size:11px;border-color:#d3bd96;color:#234b5b}
+@media(max-width:420px){.duplicate-match-art{flex-basis:43px;width:43px}.duplicate-alert{padding:10px}.duplicate-match{gap:8px}}

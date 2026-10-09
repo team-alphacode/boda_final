@@ -1,7 +1,42 @@
 <!doctype html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>Atelier · Josuè & Bertha</title><link rel="stylesheet" href="admin.css?v=cards2"></head>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>Atelier · Josuè & Bertha</title><link rel="stylesheet" href="admin.css?v=share14"></head>
 <body>
 <div id="session-loading" class="session"><span class="monogram">J<span>&</span>B</span><p>Preparando nuestro gran día…</p><div class="loading-line"></div></div>
 <main id="login" class="login" hidden><section class="login-art"><div class="eyebrow">EL COMIENZO DE SIEMPRE</div><h1>Los pequeños detalles.<br>Un día inolvidable.</h1><p>Josuè & Bertha · 19 diciembre 2026</p><div class="orbit">J<span>&</span>B</div></section><section class="login-form"><span class="eyebrow">WEDDING ATELIER</span><h2>Bienvenidos a<br>nuestro gran día.</h2><p class="muted">Un espacio para cuidar cada invitación y cada persona.</p><form id="login-form"><label>Correo electrónico<input name="email" type="email" autocomplete="username" required></label><label>Contraseña<input name="password" type="password" autocomplete="current-password" required></label><button class="primary" type="submit">Entrar al Atelier <span>↗</span></button><p id="login-error" role="alert"></p></form><small>Acceso exclusivo para administradores.</small></section></main>
 <div id="app" hidden><aside class="sidebar"><a class="brand" href="#home"><span class="monogram">J<span>&</span>B</span><span>Wedding Atelier<small>JOSUÈ & BERTHA</small></span></a><p class="nav-label">NUESTRO GRAN DÍA</p><nav id="nav"></nav><div class="sidebar-bottom"><span class="tiny-dot"></span> 19 · DIC · 2026<p>Hecho de pequeños detalles.</p><button id="logout">↗ Cerrar sesión</button></div></aside><div class="workspace"><header class="topbar"><div><span class="eyebrow">EL ARTE DE CELEBRAR</span><p id="breadcrumb">Nuestro gran día</p></div><div class="header-right"><span class="date-chip">19 diciembre · 2026</span><span class="avatar">BJ</span></div></header><main id="content" aria-live("polite")></main></div></div>
-<div id="toasts" aria-live("polite")></div><script type="module" src="boot.js?v=cards3"></script></body></html>
+
+<!-- V13: Diálogo de compartir. No requiere datos nuevos de Firebase. -->
+<dialog id="share-dialog" class="share-dialog" aria-labelledby="share-dialog-title" aria-describedby="share-dialog-subtitle">
+  <div class="share-dialog-shell">
+    <header class="share-dialog-header">
+      <div><span class="eyebrow">WEDDING ATELIER · J&B</span><h2 id="share-dialog-title">Una invitación para compartir.</h2><p id="share-dialog-subtitle">Una dedicatoria preparada con fe, cariño y gratitud.</p></div>
+      <button type="button" class="share-dialog-close" aria-label="Cerrar ventana" data-share-action="close">×</button>
+    </header>
+    <div class="share-dialog-columns">
+      <div class="share-dialog-main">
+        <div class="share-recipient"><span class="share-recipient-icon" aria-hidden="true">✉</span><div><span class="eyebrow">DESTINATARIO</span><h3 id="share-person-name"></h3><small id="share-person-seats"></small></div></div>
+        <label class="share-editor-label" for="share-message">Mensaje que enviarás</label>
+        <textarea id="share-message" class="share-message" rows="12" readonly spellcheck="false" aria-label="Mensaje personalizado de WhatsApp"></textarea>
+        <div id="share-warning" class="share-warning" hidden>Esta invitación usa el canal temporal de pruebas de Firebase y su enlace caducará. Antes de enviarla oficialmente, publica en el dominio permanente.</div>
+        <div class="share-toolbar">
+          <button type="button" data-share-action="copy-message">Copiar mensaje</button>
+          <button type="button" data-share-action="copy-link">Copiar enlace</button>
+          <button type="button" data-share-action="open-invite">Ver invitación ↗</button>
+        </div>
+        <button type="button" class="share-send" data-share-action="open-whatsapp">Abrir WhatsApp y elegir destinatario ↗</button>
+        <p class="share-disclaimer">WhatsApp no enviará nada automáticamente: tú elegirás el contacto y confirmarás el envío.</p>
+      </div>
+      <aside class="share-dialog-preview" aria-label="Vista previa ilustrativa del enlace">
+        <span class="eyebrow">ASÍ SE VERÁ EL ENLACE*</span>
+        <div class="share-link-card">
+          <img id="share-preview-img" src="../og-boda.webp?v=14" alt="Portada compartida de la boda de Josué y Bertha" width="1200" height="630">
+          <div class="share-link-card-text"><strong>Invitación de boda | Josué & Bertha</strong><p>Con gratitud a Dios, nos alegrará compartir nuestro gran día contigo.</p><span id="share-preview-domain">El enlace personal se mostrará aquí</span></div>
+        </div>
+        <a id="share-url" class="share-visible-url" href="#" target="_blank" rel="noopener noreferrer"></a>
+        <p class="share-preview-footnote">*Es una simulación. WhatsApp decide cuándo y cómo mostrar las vistas previas; la imagen será la misma para todos.</p>
+      </aside>
+    </div>
+  </div>
+</dialog>
+
+<div id="toasts" aria-live("polite")></div><script type="module" src="boot.js?v=share14"></script></body></html>
