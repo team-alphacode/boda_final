@@ -2,7 +2,7 @@ import { db } from '../js/firebase.js';
 import { auth } from '../js/firebase-auth.js';
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut, setPersistence, browserSessionPersistence } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
 import { runTransaction } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
-import { watch, ref, getDoc, setDoc, saveGuest, saveTable, assignSeat, deleteTable, submitRSVP } from '../js/data.js';
+import { watch, ref, getDoc, setDoc, saveGuest, saveTable, assignSeat, deleteTable, submitRSVP } from '../js/data.js?v=15';
 import { participants } from '../js/domain.js';
 import { escapeHTML as e, toast, dialog, errorMessage } from '../js/ui.js';
 const $ = s => document.querySelector(s);
@@ -399,7 +399,7 @@ async function editGuest(g){
 }
 async function editRSVP(g){
   const response=state.responses.find(r=>r.id===g.token);
-  const data=await dialog('Administrar asistentes',`<p>${e(g.name)} · máximo ${g.maxPeople} personas.</p><label>Respuesta<select name="attending"><option value="yes">Sí asistirán</option><option value="no" ${response?.attending===false?'selected':''}>No asistirán</option></select></label>${input('email','Correo de contacto',response?.email||'','email','required maxlength="254"')}<p class="muted">Deja vacíos los lugares que no se utilizarán. El primer nombre corresponde al invitado principal.</p>${Array.from({length:g.maxPeople},(_,i)=>input('person',`Asistente ${i+1}`,response?.names[i]||'','text','maxlength="120"')).join('')}`);
+  const data=await dialog('Administrar asistentes',`<p>${e(g.name)} · máximo ${g.maxPeople} personas.</p><label>Respuesta<select name="attending"><option value="yes">Sí asistirán</option><option value="no" ${response?.attending===false?'selected':''}>No asistirán</option></select></label>${input('email','Correo de contacto (opcional)',response?.email||'','email','maxlength="254"')}<p class="muted">Deja vacíos los lugares que no se utilizarán. El primer nombre corresponde al invitado principal.</p>${Array.from({length:g.maxPeople},(_,i)=>input('person',`Asistente ${i+1}`,response?.names[i]||'','text','maxlength="120"')).join('')}`);
   if(data)await submitRSVP(g.token,data.get('attending')==='yes',data.get('attending')==='yes'?data.getAll('person').filter(n=>n.trim()):[],data.get('email'),true);
 }
 async function seatModal(p,tableId=''){

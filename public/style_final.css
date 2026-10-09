@@ -1798,3 +1798,28 @@ html, body {
 @media(prefers-reduced-motion:reduce) {
     #pantalla-landing .seccion-final-cierre .btn-volver-inicio {transition:none;}
 }
+
+
+/* V15 · CORREO OPCIONAL: corrección visual limitada al rótulo del RSVP.
+   La lámina original de Canva tiene impreso "EN USO:*". Esta pequeña capa
+   de textura neutra oculta ese rótulo y presenta el texto verdadero, accesible
+   en el label del input. No cambia posiciones ni tamaños de otros controles. */
+#rsvp-section .rsvp-email-label-optional {
+    position: absolute;
+    z-index: 32;
+    left: 12.8%;
+    top: 60.2%;
+    width: 74.6%;
+    height: 3.6%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f3eadc url('rsvp-correo-fondo.webp') center / 100% 100% no-repeat;
+    color: #315c7b;
+    font: 400 clamp(10px, 2.65vw, 14px)/1.1 Georgia, 'Times New Roman', serif;
+    letter-spacing: clamp(.6px, .28vw, 2px);
+    text-align: center;
+    white-space: nowrap;
+    pointer-events: none;
+    user-select: none;
+}

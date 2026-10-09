@@ -35,7 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Importar lógica de Firebase
-    import('./js/invitation.js?v=10').catch(() => {
+    import('./js/invitation.js?v=15').catch(() => {
         const status = document.getElementById('invitation-status');
         if (status) status.textContent = 'No pudimos conectar con la invitación. Revisa tu conexión y vuelve a cargar la página.';
     });

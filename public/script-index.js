@@ -23,6 +23,19 @@ document.addEventListener("DOMContentLoaded", () => {
     let videoConError = false;
     let watchdog = null;
     let finished = false;
+    // V16: el texto explica el botón al comenzar, luego queda el icono.
+    let relojBotonSaltar = null;
+    const mostrarBotonSaltar = () => {
+        if (!saltarVideo) return;
+        saltarVideo.classList.remove('compacto');
+        saltarVideo.hidden = false;
+        clearTimeout(relojBotonSaltar);
+        relojBotonSaltar = setTimeout(() => {
+            if (!finished && !saltarVideo.hidden) {
+                saltarVideo.classList.add('compacto');
+            }
+        }, 3200);
+    };
 
     // Mantiene el token de la invitación al pasar de la intro a invitacion.html.
     const fallbackLink = fallbackVideo?.querySelector('a');
@@ -36,6 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (finished) return;
         finished = true;
         clearTimeout(watchdog);
+        clearTimeout(relojBotonSaltar);
         try { video.pause(); } catch (_) {}
         window.location.assign(destinoInvitacion());
     }
@@ -206,7 +220,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // play() se invoca SIN await previo, directamente en el click.
             // iOS Safari no pierde así la autorización del toque.
             const inicio = video.play();
-            saltarVideo.hidden = false;
+            mostrarBotonSaltar();
             vigilarReproduccion();
             // Conservamos la animación inicial sin demorar la llamada play().
             await Promise.all([inicio, esperar(650)]);

@@ -1,4 +1,4 @@
-import { ref, getDoc, submitRSVP } from './data.js';
+import { ref, getDoc, submitRSVP } from './data.js?v=15';
 
 const $ = (id) => document.getElementById(id);
 
@@ -9,7 +9,6 @@ const ui = {
   yes: $('radio-si'),
   no: $('radio-no'),
   status: $('rsvp-estado'),
-  retry: $('rsvp-retry'),
 
   modal: $('modal-rsvp'),
   close: $('rsvp-cerrar'),
@@ -59,26 +58,15 @@ function invitationToken() {
 
 function validEmail(value) {
   const email = String(value || '').trim();
-  return email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  return email.length === 0 || (email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
 }
 
-let focusBeforeModal = null;
 function showOverlay(element) {
   if (!element) return;
-  // Conservar el foco del usuario antes de abrir el primer modal.
-  if (![ui.modal, ui.noModal, ui.msgModal].some(el => el && !el.hidden)) {
-    focusBeforeModal = document.activeElement;
-  }
   element.hidden = false;
   element.inert = false;
   element.setAttribute('aria-hidden', 'false');
   document.body.classList.add('rsvp-modal-open');
-  // El mensaje/diálogo ofrece un objetivo de teclado sin abrir el teclado móvil.
-  requestAnimationFrame(() => {
-    if (element === ui.msgModal) ui.msgClose?.focus({ preventScroll: true });
-    else if (element === ui.modal) ui.close?.focus({ preventScroll: true });
-    else if (element === ui.noModal) ui.confirmNo?.focus({ preventScroll: true });
-  });
 }
 
 function hideOverlay(element) {
@@ -95,10 +83,6 @@ function hideOverlay(element) {
 
   if (![ui.modal, ui.noModal, ui.msgModal].some(el => el && !el.hidden)) {
     document.body.classList.remove('rsvp-modal-open');
-    if (focusBeforeModal?.isConnected && !focusBeforeModal.disabled) {
-      focusBeforeModal.focus({ preventScroll: true });
-    }
-    focusBeforeModal = null;
   }
 }
 
@@ -133,15 +117,17 @@ function unlockForm() {
   ui.status.hidden = true;
 }
 
-function requireEmail() {
+// El correo es opcional: devolvemos '' cuando no se proporciona.
+// Solo rechazamos un valor no vacío con formato incorrecto.
+function optionalEmail() {
   const email = ui.email.value.trim();
   if (validEmail(email)) return email;
 
   ui.email.focus({ preventScroll: false });
   showMessage({
     icon: '✉',
-    title: 'Nos falta tu correo',
-    text: 'Escríbenos un correo electrónico válido. Lo usaremos para comunicarnos contigo y enviarte la información de tu mesa y asiento.'
+    title: 'Revisa el correo',
+    text: 'El correo electrónico es opcional. Puedes dejarlo vacío o escribir una dirección válida para que tengamos otra forma de comunicarnos.'
   });
   return null;
 }
@@ -192,11 +178,7 @@ function showStep(step, { focus = true } = {}) {
     : (countStep ? 'PASO 1 DE 2' : 'PASO 2 DE 2');
 
   if (!countStep && focus) {
-    requestAnimationFrame(() => {
-      const first = ui.list.querySelector('input');
-      first?.focus({ preventScroll: true });
-      first?.scrollIntoView({ block: 'nearest', behavior: 'instant' });
-    });
+    requestAnimationFrame(() => ui.list.querySelector('input')?.focus({ preventScroll: true }));
   }
 }
 
@@ -282,8 +264,8 @@ async function friendlyError(error) {
 
 async function saveYes() {
   if (state.submitting || state.locked) return;
-  const email = requireEmail();
-  if (!email) return;
+  const email = optionalEmail();
+  if (email === null) return;
   const names = collectNames();
   if (!names) return;
 
@@ -299,7 +281,7 @@ async function saveYes() {
     showMessage({
       icon: '♡',
       title: '¡Confirmación recibida!',
-      text: 'Gracias por acompañarnos. Nos emociona muchísimo compartir este día contigo. Muy pronto te enviaremos la información de tu mesa y asiento.'
+      text: 'Gracias por acompañarnos. Nos emociona muchísimo compartir este día contigo. Más adelante compartiremos por WhatsApp la información de tu asiento.'
     });
   } catch (error) {
     console.error('No se pudo guardar el RSVP:', error);
@@ -313,8 +295,8 @@ async function saveYes() {
 
 async function saveNo() {
   if (state.submitting || state.locked) return;
-  const email = requireEmail();
-  if (!email) {
+  const email = optionalEmail();
+  if (email === null) {
     hideOverlay(ui.noModal);
     ui.no.checked = false;
     return;
@@ -346,7 +328,6 @@ async function saveNo() {
 }
 
 async function loadInvitation() {
-  if (ui.retry) ui.retry.hidden = true;
   state.token = invitationToken();
 
   if (!/^[a-f0-9]{64}$/i.test(state.token)) {
@@ -376,14 +357,13 @@ async function loadInvitation() {
     console.error('No se pudo cargar la invitación:', error);
     ui.name.value = 'No pudimos cargar la invitación';
     lockForm('Revisa tu conexión y vuelve a intentarlo');
-    if (ui.retry) ui.retry.hidden = false;
   }
 }
 
 ui.yes?.addEventListener('change', () => {
   if (!ui.yes.checked || state.locked) return;
-  const email = requireEmail();
-  if (!email) {
+  const email = optionalEmail();
+  if (email === null) {
     ui.yes.checked = false;
     return;
   }
@@ -392,15 +372,13 @@ ui.yes?.addEventListener('change', () => {
 
 ui.no?.addEventListener('change', () => {
   if (!ui.no.checked || state.locked) return;
-  const email = requireEmail();
-  if (!email) {
+  const email = optionalEmail();
+  if (email === null) {
     ui.no.checked = false;
     return;
   }
   showOverlay(ui.noModal);
 });
-
-ui.retry?.addEventListener('click', loadInvitation);
 
 ui.minus?.addEventListener('click', () => setCount(state.count - 1));
 ui.plus?.addEventListener('click', () => setCount(state.count + 1));
@@ -432,12 +410,11 @@ ui.msgClose?.addEventListener('click', () => hideOverlay(ui.msgModal));
 
 document.addEventListener('keydown', event => {
   if (event.key !== 'Escape') return;
-  if (!ui.msgModal.hidden) hideOverlay(ui.msgModal);
-  else if (!ui.modal.hidden) closeAttendeeModal();
+  if (!ui.modal.hidden) closeAttendeeModal();
   else if (!ui.noModal.hidden) {
     hideOverlay(ui.noModal);
     if (!state.locked) ui.no.checked = false;
-  }
+  } else if (!ui.msgModal.hidden) hideOverlay(ui.msgModal);
 });
 
 loadInvitation();

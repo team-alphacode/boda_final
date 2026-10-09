@@ -31,8 +31,10 @@ export async function saveGuest(id, values, rotate = false) {
 }
 export async function submitRSVP(invitationToken, attending, names, email, allowExisting = false) {
   const cleanEmail = String(email || '').trim();
-  if (cleanEmail.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
-    throw Error('Escribe un correo electrónico válido.');
+  // Campo opcional: mantenemos email como cadena vacía para conservar el
+  // esquema existente y la compatibilidad con el administrador.
+  if (cleanEmail.length > 254 || (cleanEmail !== '' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail))) {
+    throw Error('El correo es opcional. Si escribes uno, debe ser válido.');
   }
 
   return runTransaction(db, async tx => {

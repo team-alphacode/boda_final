@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="referrer" content="no-referrer">
     <title>Boda de Bertha y Josue</title>
-    <link rel="stylesheet" href="style_final.css?v=16">
+    <link rel="stylesheet" href="style_final.css?v=17">
 </head>
 <body>
     <!-- ==========================================
@@ -77,8 +77,8 @@
             <div class="lienzo-canva">
                 <img src="fondo-calendario.webp" width="1080" height="1920" decoding="async" loading="lazy" srcset="fondo-calendario.webp 720w, fondo-calendario.webp 1080w" sizes="(max-width: 500px) 100vw, 500px" class="capa-diapositiva" alt="">
                 <!-- ¡Corregido! Ya no tienen capa-fusion -->
-                <img src="adornos-calendario.webp" width="1080" height="1920" decoding="async" loading="lazy" srcset="adornos-calendario.webp, adornos-calendario.webp 1080w" sizes="(max-width: 500px) 100vw, 500px" class="capa-diapositiva" alt="">
-                <img src="letras-calendario.webp" width="1080" height="1920" decoding="async" loading="lazy" srcset="letras-calendario.webp, letras-calendario.webp 1080w" sizes="(max-width: 500px) 100vw, 500px" class="capa-diapositiva" alt="Acompáñanos a celebrar. Calendario de diciembre de 2026, sábado 19 destacado.">
+                <img src="adornos-calendario.webp" width="1080" height="1920" decoding="async" loading="lazy" srcset="adornos-calendario.webp 720w, adornos-calendario.webp 1080w" sizes="(max-width: 500px) 100vw, 500px" class="capa-diapositiva" alt="">
+                <img src="letras-calendario.webp" width="1080" height="1920" decoding="async" loading="lazy" srcset="letras-calendario.webp 720w, letras-calendario.webp 1080w" sizes="(max-width: 500px) 100vw, 500px" class="capa-diapositiva" alt="Acompáñanos a celebrar. Calendario de diciembre de 2026, sábado 19 destacado.">
             </div>
         </section>
 
@@ -102,7 +102,7 @@
                     Esta imagen ya combina fondo-confir + adornos-confir + letras-confir.
                     Se genera mediante mezcla Multiply para conservar exactamente el diseño de Canva.
                 -->
-                <img src="confirmacion-compuesta.webp" width="1080" height="1920" decoding="async" loading="lazy" srcset="confirmacion-compuesta.webp 720w, confirmacion-compuesta.webp 1080w" sizes="(max-width: 500px) 100vw, 500px" class="capa-diapositiva" alt="Confírmanos tu asistencia. Tu presencia hará aún más especial este día. Indica tu correo y selecciona si nos acompañarás.">
+                <img src="confirmacion-compuesta.webp" width="1080" height="1920" decoding="async" loading="lazy" srcset="confirmacion-compuesta.webp 720w, confirmacion-compuesta.webp 1080w" sizes="(max-width: 500px) 100vw, 500px" class="capa-diapositiva" alt="Confírmanos tu asistencia. Tu presencia hará aún más especial este día. Si lo deseas, indica un correo de contacto, y selecciona si nos acompañarás.">
 
                 <form id="form-asistencia" class="capa-interactiva rsvp-form" novalidate>
                     <label class="sr-only" for="campo-nombre">Invitación dirigida a</label>
@@ -115,13 +115,16 @@
                         aria-label="Invitación dirigida a"
                     >
 
-                    <label class="sr-only" for="campo-correo">Correo electrónico en uso</label>
+                    <label class="sr-only" for="campo-correo">Correo electrónico (opcional)</label>
+                    <!-- La imagen Canva tiene impreso el asterisco de obligatorio.
+                         Este rótulo lo cubre visualmente sin tocar la lámina ni sus WebP responsivos. -->
+                    <span class="rsvp-email-label-optional" aria-hidden="true">CORREO ELECTRÓNICO (OPCIONAL)</span>
                     <input
                         type="email"
                         id="campo-correo"
                         class="rsvp-field rsvp-email"
-                        placeholder="ejemplo@correo.com"
-                        aria-label="Correo electrónico"
+                        placeholder="ejemplo@correo.com (opcional)"
+                        aria-label="Correo electrónico (opcional)"
                         autocomplete="email"
                         inputmode="email"
                         maxlength="254"
@@ -201,7 +204,7 @@
          ========================================================= -->
     <div id="modal-rsvp" class="rsvp-overlay" hidden aria-hidden="true">
         <section class="rsvp-dialog rsvp-dialog--attendees" role="dialog" aria-modal="true" aria-labelledby="rsvp-modal-title">
-            <img src="adornos-modal.webp" width="1080" height="1278" decoding="async" loading="lazy" srcset="adornos-modal-720.webp 720w, adornos-modal.webp 1080w" sizes="(max-width: 500px) 100vw, 500px" class="rsvp-dialog-art" alt="" aria-hidden="true">
+            <img src="adornos-modal.webp" width="1080" height="1278" decoding="async" loading="lazy" srcset="adornos-modal.webp 720w, adornos-modal.webp 1080w" sizes="(max-width: 500px) 100vw, 500px" class="rsvp-dialog-art" alt="" aria-hidden="true">
 
             <button type="button" id="rsvp-cerrar" class="rsvp-close" aria-label="Cerrar">×</button>
 
@@ -291,6 +294,6 @@
         </section>
     </div>
 
-    <script src="script.js?v=20"></script> 
+    <script src="script.js?v=21"></script> 
 </body>
 </html>

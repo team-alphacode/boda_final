@@ -1,5 +1,15 @@
 {
   "projects": {
     "default": "amor-772d4"
-  }
+  },
+  "targets": {
+    "amor-772d4": {
+      "hosting": {
+        "boda": [
+          "berelis"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }
