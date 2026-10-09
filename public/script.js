@@ -229,6 +229,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, { passive: true });
 
+    // V12: play() es asíncrono. Si la persona pulsa Pausa o sale de la lámina
+    // antes de que termine, el navegador puede rechazarlo con AbortError.
+    // Eso es una cancelación voluntaria, NO un problema del archivo MP3.
+    function tratarErrorInicioAudio(e) {
+        if (e?.name === 'AbortError' && audio.paused) {
+            actualizarBoton();
+            return; // El usuario o nuestro diálogo pidió pausar: comportamiento normal.
+        }
+        console.warn('No se pudo iniciar la pista:', e);
+        actualizarBoton();
+        if (estado) estado.textContent = 'No se pudo reproducir la pista. Intenta de nuevo.';
+    }
+
     boton.addEventListener('click', () => {
         if (audio.paused || audio.ended) {
             if (audio.ended) audio.currentTime = 0;
@@ -238,14 +251,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 reproduccionIniciadaEnSeccion = true;
                 ultimoScrollY = window.scrollY;
             }
-            // Llamada inmediata en el gesto del usuario (requerida por Safari).
-            const intento = audio.play();
-            if (intento && typeof intento.catch === 'function') {
-                intento.catch(e => {
-                    console.warn('No se pudo iniciar la pista:', e);
-                    if (estado) estado.textContent = 'No se pudo reproducir la pista. Intenta de nuevo.';
-                    actualizarBoton();
-                });
+            // Se llama desde el gesto del usuario, sin esperas (iPhone/Safari).
+            try {
+                const intento = audio.play();
+                if (intento && typeof intento.catch === 'function') {
+                    intento.catch(tratarErrorInicioAudio);
+                }
+            } catch (e) {
+                tratarErrorInicioAudio(e);
             }
         } else {
             audio.pause();
@@ -263,6 +276,9 @@ document.addEventListener('DOMContentLoaded', () => {
             eleccionResuelta = true;
             cerrarAviso();
         }).catch(() => {
+            // Si cerraron el aviso mientras play() estaba pendiente, no mostrar
+            // un fallo en un diálogo que ya no existe en pantalla.
+            if (!avisoAbierto || eleccionResuelta) return;
             if (error) {
                 error.textContent = 'No se pudo continuar el audio. Prueba de nuevo o sigue sin música.';
                 error.hidden = false;

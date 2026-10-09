@@ -8,6 +8,9 @@
     <title>Boda de Bertha y Josue</title>
 
     <!-- Este INDEX usa su propio CSS. No carga estilos de invitacion.html. -->
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="shortcut icon" href="favicon.ico">
+    <link rel="apple-touch-icon" href="favicon.png">
     <link rel="stylesheet" href="style-index.css?v=10">
 </head>
 <body>
@@ -31,7 +34,7 @@
         </section>
 
         <!-- 2. SOBRE -->
-        <section id="pantalla-sobre" class="intro-pantalla pantalla-media" aria-hidden="true">
+        <section id="pantalla-sobre" class="intro-pantalla pantalla-media" aria-hidden="true" inert>
             <!-- Fondo suave para que en escritorio tampoco existan bordes blancos bruscos -->
             <div class="fondo-sobre-desenfocado" aria-hidden="true"></div>
 
@@ -57,7 +60,7 @@
         </section>
 
         <!-- 3. VIDEO DE APERTURA -->
-        <section id="pantalla-video" class="intro-pantalla pantalla-media" aria-hidden="true">
+        <section id="pantalla-video" class="intro-pantalla pantalla-media" aria-hidden="true" inert>
             <div class="escena-vertical escena-video">
                 <video
                     id="video-invitacion"
@@ -86,6 +89,6 @@
 
     </main>
 
-    <script src="script-index.js?v=10"></script>
+    <script src="script-index.js?v=11"></script>
 </body>
 </html>

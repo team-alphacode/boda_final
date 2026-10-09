@@ -51,8 +51,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     function activarPantalla(pantalla) {
+        // V11: antes de ocultar una pantalla, retiramos el foco de sus botones.
+        // Chrome avisa si se aplica aria-hidden a un ancestro del foco activo.
+        const focoActual = document.activeElement;
+        if (focoActual instanceof HTMLElement &&
+            focoActual !== document.body &&
+            !pantalla.contains(focoActual) &&
+            [pantallaCarga, pantallaSobre, pantallaVideo].some(item => item.contains(focoActual))) {
+            focoActual.blur();
+        }
+
         [pantallaCarga, pantallaSobre, pantallaVideo].forEach(item => {
             const activa = item === pantalla;
+            // inert impide navegar con Tab hacia controles fuera de la escena actual.
+            item.inert = !activa;
             item.classList.toggle("activa", activa);
             item.setAttribute("aria-hidden", activa ? "false" : "true");
         });
