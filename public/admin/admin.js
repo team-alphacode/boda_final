@@ -87,16 +87,47 @@ const labels = {pending:'Pendiente',yes:'Confirmado',no:'No asistirá'};
 const badge = g => `<span class="badge ${status(g)}">${labels[status(g)]}</span>`;
 const people = () => participants(state.guests,state.responses,state.participants);
 const initials = name => e(name.split(/\s+/).slice(0,2).map(n => n[0]).join('').toUpperCase());
-// OPCIONAL: si administras desde localhost pero tu invitación ya está publicada,
-// indica la URL pública HTTPS de la página inicial (sin token).
-// Ejemplo: 'https://tusitio.web.app/index.html'. En blanco conserva el comportamiento original.
-const PUBLIC_INVITATION_BASE_URL = '';
-const url = g => {
-  const u = new URL(PUBLIC_INVITATION_BASE_URL || '../index.html', location.href);
+// DOMINIO DE LAS INVITACIONES · BERELIS
+// El ID del proyecto Firebase puede seguir siendo «amor-772d4»; esto configura
+// el SITIO de Hosting al que apuntan las tarjetas, no la base de datos.
+// Se guarda SOLO la URL base en el navegador del administrador (nunca tokens).
+// Los canales preview de Firebase usan sufijos variables: no se pueden adivinar.
+const INVITATION_URL_STORAGE_KEY = 'boda-berelis:invitation-base-url:v1';
+const BERELIS_HOST = /^berelis(?:--[a-z0-9-]+)?\.(?:web\.app|firebaseapp\.com)$/i;
+function normalizeInvitationBase(value) {
+  let u;
+  try { u = new URL(String(value || '').trim()); }
+  catch { throw Error('Pega la URL HTTPS completa del despliegue de berelis.'); }
+  if (u.protocol !== 'https:' || !BERELIS_HOST.test(u.hostname) || u.username || u.password || u.port) {
+    throw Error('La URL debe ser HTTPS y pertenecer al Hosting berelis (web.app o firebaseapp.com).');
+  }
+  // Siempre enlazamos a la portada. El token se añade por separado por invitado.
+  u.pathname = '/index.html';
   u.search = '';
   u.hash = '';
+  return u.href;
+}
+function savedInvitationBase() {
+  try {
+    const saved = localStorage.getItem(INVITATION_URL_STORAGE_KEY);
+    return saved ? normalizeInvitationBase(saved) : '';
+  } catch { return ''; }
+}
+// Si el administrador también está hospedado en berelis, funciona sin configurar.
+// Desde el antiguo amor-772d4 (o localhost) NO reutilizamos el dominio incorrecto.
+let PUBLIC_INVITATION_BASE_URL = savedInvitationBase() ||
+  (BERELIS_HOST.test(location.hostname) && location.protocol === 'https:'
+    ? `${location.origin}/index.html` : '');
+const url = g => {
+  if (!PUBLIC_INVITATION_BASE_URL) return '';
+  const u = new URL(PUBLIC_INVITATION_BASE_URL);
   u.searchParams.set('token', g.token);
   return u.href;
+};
+const requireInvitationUrl = g => {
+  const target = url(g);
+  if (!target) throw Error('Primero configura el enlace de berelis en Configuración del administrador.');
+  return target;
 };
 // WhatsApp comparte texto y un enlace real; nunca se incrusta un enlace funcional en un PNG.
 // Mensaje sobrio: se genera desde el invitado YA cargado. Cero lecturas nuevas.
@@ -114,9 +145,14 @@ const whatsappMessage = g => {
 const whatsappUrl = g => `https://wa.me/?text=${encodeURIComponent(whatsappMessage(g))}`;
 // No usamos enlaces permanentes si el administrador está en localhost.
 // Para enlaces oficiales puedes definir PUBLIC_INVITATION_BASE_URL arriba.
-const isPreviewChannelUrl = g => /--[^/]+\.web\.app$/i.test(new URL(url(g)).hostname);
+const isPreviewChannelUrl = g => {
+  const target = url(g);
+  return Boolean(target) && /--[^/]+\.web\.app$/i.test(new URL(target).hostname);
+};
 const isLocalInvitationUrl = g => {
-  const invitationUrl = new URL(url(g));
+  const target = url(g);
+  if (!target) return true;
+  const invitationUrl = new URL(target);
   const hostname = invitationUrl.hostname.toLowerCase();
   return invitationUrl.protocol !== 'https:' || hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1' || hostname.endsWith('.local') || hostname.startsWith('192.168.') || hostname.startsWith('10.') || /^172\.(1[6-9]|2[0-9]|3[01])\./.test(hostname);
 };
@@ -251,10 +287,14 @@ function guests() {
   return heading('Personas que hacen historia.','Invitaciones únicas para quienes queremos cerca.',button('add','+ Agregar invitado','','primary'))+`<div class="toolbar"><input id="search" aria-label="Buscar invitado" placeholder="Buscar por nombre o familia…" value="${e(search)}"><select id="filter" aria-label="Filtrar invitados">${[['all','Todos'],['yes','Confirmados'],['pending','Pendientes'],['no','No asistirán'],['configured','Tarjeta configurada'],['unconfigured','Tarjeta pendiente'],['archived','Archivados']].map(([v,l])=>`<option value="${v}" ${filter===v?'selected':''}>${l}</option>`).join('')}</select></div><div class="grid">${list.map(guestCard).join('')||empty('Un lugar para cada persona','Aún no hay invitados en esta vista. Agrega una invitación para comenzar.')}</div>`;
 }
 function cardArtwork(g, compact=false) {
+  const target = url(g);
+  const link = target
+    ? `<a class="invite-card-link" href="${e(target)}" target="_blank" rel="noopener noreferrer" aria-label="Abrir invitación de ${e(g.name)}">ABRIR INVITACIÓN</a>`
+    : '<span class="invite-card-link" aria-label="Falta configurar el dominio de la invitación">CONFIGURAR ENLACE</span>';
   return `<div class="invite-card-art ${compact?'invite-card-art--compact':''}" aria-label="Tarjeta personal de ${e(g.name)}">
     <img src="tarjeta-molde.png" alt="" aria-hidden="true">
     <div class="invite-card-name">${e(g.name)}</div>
-    <a class="invite-card-link" href="${e(url(g))}" target="_blank" rel="noopener noreferrer" aria-label="Abrir invitación de ${e(g.name)}">ABRIR INVITACIÓN</a>
+    ${link}
   </div>`;
 }
 // El editor se reutiliza en dos contextos: pendientes y edición explícita desde Gestión.
@@ -270,7 +310,7 @@ function cardEditor(g) {
       <div class="row">${loadedCollections.has('responses')?badge(g):'<span class="badge">Tarjeta configurada</span>'}<small>${g.configured?'Configurada':'Pendiente de configurar'} · ${g.active?'Activa':'Archivada'}</small></div>
       <small>Creada: ${date(g.createdAt)}<br>Modificada: ${date(g.updatedAt)}</small>
       <p class="eyebrow" style="margin-top:22px">ENLACE PERSONAL</p>
-      <p class="token">${e(url(g))}</p>
+      <p class="token">${e(url(g) || 'Pendiente: Configuración → Dominio de invitaciones')}</p>
       <details><summary>Token de invitación</summary><p class="token">${e(g.token)}</p></details>
       <div class="actions" style="margin-top:18px">${button('copy','Copiar enlace',g.id)}${button('open','Ver invitación ↗',g.id)}${g.configured&&g.active?button('whatsapp','Compartir por WhatsApp',g.id):''}</div>
       <div class="danger-zone">${button('rotate','Regenerar token',g.id,'danger')}<p class="muted">El enlace anterior dejará de funcionar.</p></div>
@@ -336,7 +376,25 @@ function tables() {
   const ps=people();
   return heading('Un lugar para compartir.','Organiza mesas y asientos, sin perder ningún detalle.',button('new-table','+ Crear mesa','','primary'))+`<p class="note">${ps.filter(p=>!p.tableId).length} participantes sin mesa. Usa “Asignar” para elegir una persona y un asiento disponible.</p><div class="grid">${state.tables.map(t=>`<article class="guest-card"><div class="card-top"><span class="eyebrow">DISTRIBUCIÓN</span><span class="badge">${Object.keys(t.seats).length} / ${t.capacity}</span></div><div class="table-art"><strong>${e(t.name.replace(/mesa\s*/i,''))}</strong>${Array.from({length:Math.min(t.capacity,16)},(_,i)=>`<i class="seat-dot ${i<Object.keys(t.seats).length?'filled':''}" style="left:calc(50% + ${Math.cos(i/Math.min(t.capacity,16)*Math.PI*2)*66}px - 6px);top:calc(50% + ${Math.sin(i/Math.min(t.capacity,16)*Math.PI*2)*66}px - 6px)"></i>`).join('')}</div><h3>${e(t.name)}</h3><p class="muted">${t.capacity-Object.keys(t.seats).length} asientos disponibles</p><div class="seat-list">${Object.entries(t.seats).sort((a,b)=>a[1]-b[1]).map(([id,n])=>`<div class="row"><span>${n}. ${e(ps.find(p=>p.id===id&&p.tableId===t.id)?.name || 'Confirmación retirada / invitado archivado')}</span>${button('release','Quitar',id)}</div>`).join('')}</div><div class="actions" style="margin-top:20px">${button('table-assign','Asignar',t.id)}${button('edit-table','Editar',t.id)}${button('delete-table','Eliminar',t.id,'danger')}</div></article>`).join('')||empty('Diseña el encuentro','Crea la primera mesa y empieza a distribuir a tus invitados.')}</div>`;
 }
-function settings(){return heading('Cada detalle, en orden.','Configuración y acceso a tu espacio de administración.')+`<section class="panel"><h3>Bertha & Josue</h3><div class="settings-list"><p>Fecha de la boda: <strong>19 de diciembre de 2026 · 17:00 · Nicaragua</strong></p><p>Proyecto Firebase: <strong>amor-772d4</strong></p><p>Sesión: <strong>${e(auth.currentUser.email)}</strong></p><p>Plan: <strong>Spark · sin Storage ni servicios de pago</strong></p><p>Los administradores se autorizan desde Firebase Console mediante <code>admins/UID</code>. No hay registro público.</p><p>Los enlaces son privados por posesión: compártelos únicamente con su destinatario. Quien tenga un enlace puede consultar y responder esa invitación.</p><p>Al archivar se conserva la historia y se desactiva el enlace. Las plazas de mesa se conservan hasta retirarlas explícitamente.</p></div><div class="actions"><a href="../docs/GUIA.md" target="_blank" rel="noopener">Leer guía de configuración ↗</a>${button('logout','Cerrar sesión')}</div></section>`;}
+function settings(){
+  const base = PUBLIC_INVITATION_BASE_URL;
+  const current = base
+    ? `<p class="note">Enlace que usarán las tarjetas: <strong>${e(base)}</strong>${/--[^/]+\.web\.app$/i.test(new URL(base).hostname) ? '<br>Canal de pruebas: puede caducar.' : ''}</p>`
+    : '<p class="note">Aún no hay un dominio de invitaciones configurado. Por seguridad no compartimos enlaces hacia el sitio anterior.</p>';
+  return heading('Cada detalle, en orden.','Configuración y acceso a tu espacio de administración.')+
+    `<section class="panel">
+      <h3>Dominio de invitaciones · berelis</h3>
+      <p class="muted">Copia aquí la URL exacta que devuelve Firebase al desplegar la invitación. Puedes pegar la portada completa, incluso si contiene ?token=: lo eliminaremos al guardar. Esto afecta a todos los enlaces generados por este navegador, sin modificar los invitados.</p>
+      <form id="public-url-form" class="public-url-settings">
+        <label for="public-invitation-url">URL de la portada (HTTPS)</label>
+        <input id="public-invitation-url" name="baseUrl" type="url" inputmode="url" required spellcheck="false" autocomplete="off" placeholder="https://berelis--canal-de-pruebas.web.app/index.html" value="${e(base)}">
+        <button type="submit" class="primary">Guardar dominio</button>
+      </form>
+      ${current}
+      <p class="muted">Cuando publiques en producción, cambia este campo a la URL permanente de berelis. La configuración se guarda en este navegador.</p>
+    </section>
+    <section class="panel" style="margin-top:20px"><h3>Bertha & Josue</h3><div class="settings-list"><p>Fecha de la boda: <strong>19 de diciembre de 2026 · 17:00 · Nicaragua</strong></p><p>Proyecto Firebase: <strong>amor-772d4</strong> (ID del proyecto, no el dominio público)</p><p>Sesión: <strong>${e(auth.currentUser.email)}</strong></p><p>Plan: <strong>Spark · sin Storage ni servicios de pago</strong></p><p>Los administradores se autorizan desde Firebase Console mediante <code>admins/UID</code>. No hay registro público.</p><p>Los enlaces son privados por posesión: compártelos únicamente con su destinatario. Quien tenga un enlace puede consultar y responder esa invitación.</p><p>Al archivar se conserva la historia y se desactiva el enlace. Las plazas de mesa se conservan hasta retirarlas explícitamente.</p></div><div class="actions"><a href="../docs/GUIA.md" target="_blank" rel="noopener">Leer guía de configuración ↗</a>${button('logout','Cerrar sesión')}</div></section>`;
+}
 function render(){
   if(!ready || dataTransition)return;
   page=pageFromHash();
@@ -408,6 +466,19 @@ async function seatModal(p,tableId=''){
   const data=await dialog('Un lugar en la mesa',`<label>Participante<select name="person">${(p?[p]:ps).map(p=>`<option value="${p.id}">${e(p.name)} · ${e(p.invitation)}</option>`).join('')}</select></label><label>Mesa<select name="table">${state.tables.map(t=>`<option value="${t.id}" ${t.id===target?'selected':''}>${e(t.name)} · ${t.capacity-Object.keys(t.seats).length} libres</option>`).join('')}</select></label>${input('seat','Número de asiento',p?.seat||1,'number','required min="1" max="50"')}<p class="muted">Se verificará que el asiento esté libre al guardar. Si mueves a una persona, se libera su asiento anterior.</p>`,'Asignar');
   if(data)await assignSeat(ps.find(p=>p.id===data.get('person')),data.get('table'),data.get('seat'));
 }
+document.addEventListener('submit', event => {
+  if (event.target.id !== 'public-url-form') return;
+  event.preventDefault();
+  try {
+    const normalized = normalizeInvitationBase(event.target.elements.baseUrl.value);
+    // Si el navegador impide storage, avisamos y dejamos el estado operativo temporalmente.
+    try { localStorage.setItem(INVITATION_URL_STORAGE_KEY, normalized); }
+    catch { toast('Enlace aplicado, pero tu navegador no permitió guardarlo permanentemente.', true); }
+    PUBLIC_INVITATION_BASE_URL = normalized;
+    render();
+    toast('Dominio actualizado. Las tarjetas compartirán ahora el enlace correcto de berelis.');
+  } catch (err) { toast(errorMessage(err), true); }
+});
 document.addEventListener('submit',async event=>{
   if(event.target.id!=='card-form')return;event.preventDefault();const b=event.target.querySelector('button');b.disabled=true;
   try{const g=state.guests.find(g=>g.id===selected),f=new FormData(event.target);if(!g)throw Error('No encontramos esta invitación. Vuelve a seleccionar el invitado.');const similar=findSimilarGuests(f.get('name'),g.id);if(similar.length){const approved=await dialog('¿Es una invitación repetida?',`<p class="muted">Ya hay nombres parecidos registrados. Revisa antes de continuar.</p>${duplicatesMarkup(f.get('name'),g.id)}`,'Guardar de todos modos','Revisar nombre');if(!approved){takeDuplicateNavigation();return;}}await saveGuest(g.id,{...g,name:f.get('name'),maxPeople:f.get('maxPeople'),message:f.get('message'),configured:true});event.target.dataset.dirty='false';editingManagedCardId='';location.hash='card-manager';render();toast('Tarjeta guardada. Ya está disponible en Gestión de tarjetas.');}catch(err){toast(errorMessage(err),true);}finally{b.disabled=false;}
@@ -426,7 +497,7 @@ const shareUrl = document.getElementById('share-url');
 const shareWarning = document.getElementById('share-warning');
 const sharePreviewImage = document.getElementById('share-preview-img');
 function openShareDialog(g) {
-  if (!shareDialog || !g?.configured || !g.active) return;
+  if (!shareDialog || !g?.configured || !g.active || !url(g)) return;
   shareGuest = g;
   shareReturnFocus = document.activeElement;
   shareName.textContent = g.name;
@@ -485,11 +556,14 @@ document.addEventListener('click',async event=>{
     if(action==='card' && g){selected=id;editingManagedCardId='';const target=g.configured?'card-manager':'cards';if(pageFromHash()===target)render();else location.hash=target;}
      if(action==='manager-edit' && g?.configured){editingManagedCardId=id;selected=id;if(pageFromHash()==='card-manager')render();else location.hash='card-manager';}
     if(action==='manager-back'){editingManagedCardId='';render();}
-    if(action==='copy'){await navigator.clipboard.writeText(url(g));toast('Enlace copiado.');}
+    if(action==='copy'){await navigator.clipboard.writeText(requireInvitationUrl(g));toast('Enlace copiado.');}
     if(action==='whatsapp' && g){
       if(!g.configured){toast('Primero debes guardar la tarjeta.',true);}
       else if(!g.active){toast('Restaura la invitación para poder compartirla.',true);}
-      else if(isLocalInvitationUrl(g)){
+      else if(!PUBLIC_INVITATION_BASE_URL){
+        toast('Configura primero el enlace actual de berelis. Te llevamos a Configuración.',true);
+        location.hash='settings';
+      }else if(isLocalInvitationUrl(g)){
         toast('La invitación necesita un enlace público HTTPS para compartirse. No puedes enviar la dirección local de tu computadora.',true);
       }else{
         // No abrimos la interfaz genérica de wa.me de inmediato.
@@ -497,7 +571,7 @@ document.addEventListener('click',async event=>{
         openShareDialog(g);
       }
     }
-    if(action==='open')window.open(url(g),'_blank','noopener,noreferrer');
+    if(action==='open')window.open(requireInvitationUrl(g),'_blank','noopener,noreferrer');
     if(action==='rotate' && await dialog('¿Generar un nuevo enlace?','<p>El enlace anterior dejará de funcionar. Se conservarán la confirmación y los participantes. Tendrás que compartir el enlace nuevo.</p>','Regenerar token')){await saveGuest(g.id,g,true);toast('Enlace renovado.');}
     if(action==='archive' && await dialog('¿Archivar esta invitación?',`<p>Se desactivará el enlace de ${e(g.name)} y se excluirá a sus participantes de las listas activas.</p><p>Se conservarán la confirmación, roles y asientos. Puedes liberar los asientos desde Mesas, o restaurar la invitación más adelante.</p>`,'Archivar')){await saveGuest(g.id,{...g,active:false});toast('Invitación archivada.');}
     if(action==='restore'){await saveGuest(g.id,{...g,active:true});toast('Invitación restaurada.');}

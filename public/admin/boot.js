@@ -1,4 +1,4 @@
-import('./admin.js?v=share15').catch((error) => {
+import('./admin.js?v=berelis16').catch((error) => {
   console.error('No se pudo iniciar el panel de administración:', error);
 
   document.getElementById('session-loading').hidden = true;

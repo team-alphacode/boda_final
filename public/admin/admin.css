@@ -243,3 +243,11 @@
 .duplicate-match-text small{font-size:10px;color:#62737b;line-height:1.4}
 .duplicate-match-text button{padding:8px 10px;font-size:11px;border-color:#d3bd96;color:#234b5b}
 @media(max-width:420px){.duplicate-match-art{flex-basis:43px;width:43px}.duplicate-alert{padding:10px}.duplicate-match{gap:8px}}
+
+/* V16 · Configuración segura del enlace berelis */
+.public-url-settings{display:flex;align-items:end;gap:12px;flex-wrap:wrap;margin:17px 0}
+.public-url-settings label{flex:1 1 320px;min-width:0;display:grid;gap:8px;font-size:12px;font-weight:700}
+.public-url-settings input{width:100%;max-width:100%;min-height:45px;border:1px solid #d7ccb7;border-radius:9px;padding:12px 14px;color:#142d3c;background:#fff;font:12px ui-monospace,monospace}
+.public-url-settings button{min-height:45px}
+.public-url-settings + .note{overflow-wrap:anywhere}
+@media(max-width:600px){.public-url-settings button{width:100%}}
